@@ -26,7 +26,7 @@ for (let index = 2; index < process.argv.length; index += 1) {
 const baseUrl = (
   args.get("base-url") ??
   process.env.PM_INTEGRATION_BASE_URL ??
-  "http://127.0.0.1:3224"
+  "http://127.0.0.1:3225"
 ).replace(/\/$/, "");
 const pmRepo = path.resolve(
   args.get("pm-repo") ?? path.join(root, "..", "project-management-agent-v4"),

@@ -14,7 +14,7 @@ import { PmWorkspaceBadge } from "./client/workspace-badge.js";
 
 function OpenPmItem({ openScreen }: PluginSidebarItemProps) {
   const settings = useSettings(pmConnection);
-  const baseUrl = settings.status === "ready" ? settings.values.baseUrl : "http://127.0.0.1:3224";
+  const baseUrl = settings.status === "ready" ? settings.values.baseUrl : "http://127.0.0.1:3225";
   const openPm = useCallback(() => {
     const url = `${baseUrl.replace(/\/$/, "")}/pm`;
     void openExternalUrl(url).catch(() => {

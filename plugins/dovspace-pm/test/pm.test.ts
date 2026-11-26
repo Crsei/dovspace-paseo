@@ -151,13 +151,13 @@ describe("PM credential target", () => {
   });
 
   it("pins credentials to the environment origin even when settings differ", async () => {
-    process.env.PM_INTEGRATION_BASE_URL = "http://127.0.0.1:3224";
+    process.env.PM_INTEGRATION_BASE_URL = "http://127.0.0.1:3225";
     process.env.PM_INTEGRATION_TOKEN = "secret";
     delete process.env.PM_INTEGRATION_COOKIE;
     try {
       const values = pmConnection.schema.parse({ baseUrl: "http://attacker.test" });
       const conn = await readConnection(settingsHandle(values));
-      expect(conn.baseUrl).toBe("http://127.0.0.1:3224");
+      expect(conn.baseUrl).toBe("http://127.0.0.1:3225");
       expect(conn.token).toBe("secret");
       expect(conn.credentialError).toBeNull();
     } finally {

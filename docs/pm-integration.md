@@ -31,11 +31,26 @@ are built and installed independently.
 
 | Service                             | Port    | Notes                                                        |
 | ----------------------------------- | ------- | ------------------------------------------------------------ |
-| PM gateway (public app + API proxy) | `3224`  | The adapter's default base URL                               |
-| PM API                              | `4194`  | Fastify; gateway proxies `/api`, `/health`, `/openapi.json`  |
+| PM gateway (public app + API proxy) | `3225`  | The adapter's default base URL                               |
+| PM API                              | `4195`  | Fastify; gateway proxies `/api`, `/health`, `/openapi.json`  |
 | PM Agent API                        | `4325`  | Reached through the gateway's `/agent/api` and `/mcp` routes |
 | PM worker                           | no HTTP | Required for readiness                                       |
 | Unified edge                        | `7000`  | `deploy/pm-integration/Caddyfile`                            |
+
+## Dedicated local stack
+
+The Paseo integration runs its own PM entry on `3225`, separate from the legacy
+`3224` gateway:
+
+```bash
+npm run pm:local:start   # API :4195, gateway :3225, logs in .dev/pm-integration
+npm run pm:local:status
+npm run pm:local:stop
+```
+
+The API keeps PM's data root and database; only its listening port and
+`PUBLIC_ORIGIN` change. `3224`/`4194` are stopped and left free for other
+consumers; the Paseo plugin and all verification scripts use `3225`.
 
 ## Adapter
 
@@ -72,7 +87,7 @@ npx vitest run --config vitest.config.ts # from packages/pm-integration
 ### Live route probe
 
 ```bash
-npm run pm:probe -- --base-url http://127.0.0.1:3224 --json artifacts/pm-contract-probe.json
+npm run pm:probe -- --base-url http://127.0.0.1:3225 --json artifacts/pm-contract-probe.json
 ```
 
 The probe calls every manifest operation. Reads use the configured session; writes are
@@ -97,7 +112,7 @@ fails the probe. Pass `--token`, `--cookie`, or set `PM_INTEGRATION_TOKEN` /
 Credentials stay in the daemon environment:
 
 ```bash
-PM_INTEGRATION_BASE_URL=http://127.0.0.1:3224   # optional override of the setting
+PM_INTEGRATION_BASE_URL=http://127.0.0.1:3225   # optional override of the setting
 PM_INTEGRATION_TOKEN=...                        # opaque PM session token (bearer)
 PM_INTEGRATION_COOKIE=pm_v4_session=...         # alternative; token wins
 ```
@@ -113,7 +128,7 @@ Paseo dev restart); directory-plugin reload does not apply to built-ins.
 `deploy/pm-integration/Caddyfile` serves both hosts on `:7000`:
 
 - `paseo.localhost` → `6768` (WebSocket and API untouched)
-- `pm.localhost` → `3224`, with `/api/v1/internal/*` blocked, SSE unbuffered, and
+- `pm.localhost` → `3225`, with `/api/v1/internal/*` blocked, SSE unbuffered, and
   Cookie/Origin/Last-Event-ID preserved
 - `/agent/api/*`, `/mcp`, `/oauth/*`, `/.well-known/*` stay on the PM gateway
 
@@ -137,16 +152,17 @@ separate: `/health/ready` must be 200 for writes and page data to be trusted.
 
 ## Current verification
 
-Recorded on 2026-11-26 against the local PM gateway (`:3224`) and the rebuilt PM API:
+Recorded on 2026-11-26 against the local PM gateway (`:3225`) and the rebuilt PM API:
 
 | Check                           | Result                                                                                                                                                                                                |
 | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Contract manifest               | 187 operations, 174 paths, OpenAPI SHA-256 matches the baseline                                                                                                                                       |
 | Live route probe (anonymous)    | 187/187 reachable; writes rejected before mutation                                                                                                                                                    |
 | Live route probe (test session) | 187/187 reachable (45 × 200, 67 × 400, 40 × 401, 2 × 403, 30 × 404, 3 × 503)                                                                                                                          |
-| Page matrix                     | 34/34 production pages passed with an isolated PM test account and Chrome                                                                                                                             |
+| Page matrix (3225/4195)         | 34/34 production pages passed with an isolated PM test account and Chrome                                                                                                                             |
+| Direct sidebar entry            | Opens `http://127.0.0.1:3225/pm`; unauthenticated load shows PM's login page, not the bootstrap error surface                                                                                         |
 | Plugin                          | typecheck + lint clean; real compiler produced client/server bundles; an isolated daemon loaded all six RPCs and returned live status, the test actor, one workspace, and an explicit unmapped target |
-| PM ready                        | **503** — see the data condition below                                                                                                                                                                |
+| PM ready                        | **503** — see the data condition below; reads and all 34 page routes still pass                                                                                                                       |
 
 The page matrix used a dedicated account created with PM's `scripts/create-account.ts`,
 a sample workspace, and the session in `artifacts/pm-test-session.json` (ignored, 0600).

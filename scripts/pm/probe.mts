@@ -33,7 +33,7 @@ for (let index = 2; index < process.argv.length; index += 1) {
 }
 
 const baseUrl =
-  args.get("base-url") ?? process.env.PM_INTEGRATION_BASE_URL ?? "http://127.0.0.1:3224";
+  args.get("base-url") ?? process.env.PM_INTEGRATION_BASE_URL ?? "http://127.0.0.1:3225";
 const token = args.get("token") ?? process.env.PM_INTEGRATION_TOKEN;
 const cookie = args.get("cookie") ?? process.env.PM_INTEGRATION_COOKIE;
 const workspaceId =

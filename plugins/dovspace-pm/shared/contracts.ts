@@ -6,7 +6,7 @@ export const pmConnection = defineSettings({
   scope: "host",
   version: 1,
   schema: z.object({
-    baseUrl: z.url({ protocol: /^https?$/ }).default("http://127.0.0.1:3224"),
+    baseUrl: z.url({ protocol: /^https?$/ }).default("http://127.0.0.1:3225"),
     openMode: z.enum(["external", "workspace-browser"]).default("external"),
     mappings: z
       .array(

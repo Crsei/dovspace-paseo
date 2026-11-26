@@ -91,7 +91,7 @@ function ConnectionFields({
       <SettingsInput
         label={t("settingsBaseUrl")}
         initialValue={baseUrl}
-        placeholder="http://127.0.0.1:3224"
+        placeholder="http://127.0.0.1:3225"
         disabled={disabled}
         onChangeText={onBaseUrl}
       />

@@ -137,7 +137,10 @@
     "release:ship:beta": "node scripts/push-current-release-tag.mjs --check && npm run release:publish:beta && npm run release:push",
     "release:reconcile": "node scripts/reconcile-release.mjs",
     "pm:plugin:check": "tsx scripts/pm/check-plugin-compile.mts",
-    "pm:plugin:rpc": "tsx scripts/pm/check-plugin-rpc.mts"
+    "pm:plugin:rpc": "tsx scripts/pm/check-plugin-rpc.mts",
+    "pm:local:start": "scripts/pm/start-local.sh start",
+    "pm:local:stop": "scripts/pm/start-local.sh stop",
+    "pm:local:status": "scripts/pm/start-local.sh status"
   },
   "devDependencies": {
     "@types/ws": "^8.5.14",

@@ -6,7 +6,7 @@ Caddy v2 reverse proxy for a same-machine development setup. It listens on
 | Host                         | Upstream                        |
 | ---------------------------- | ------------------------------- |
 | `paseo.localhost` (any port) | `127.0.0.1:6768` (Paseo daemon) |
-| `pm.localhost` (any port)    | `127.0.0.1:3224` (PM gateway)   |
+| `pm.localhost` (any port)    | `127.0.0.1:3225` (PM gateway)   |
 
 `/agent/api/*`, `/mcp`, `/oauth/*` and `/.well-known/*` are PM-host paths and go
 to the PM gateway; the edge never proxies them straight to the PM agent port.

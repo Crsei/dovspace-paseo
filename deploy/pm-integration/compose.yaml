@@ -1,5 +1,5 @@
 # Edge only. Linux host networking lets Caddy reach 127.0.0.1:6768 and
-# 127.0.0.1:3224 on the host. On Docker Desktop, run Caddy natively instead.
+# 127.0.0.1:3225 on the host. On Docker Desktop, run Caddy natively instead.
 services:
   edge:
     image: caddy:2-alpine
@@ -18,7 +18,7 @@ services:
       PASEO_HOST: ${PASEO_HOST:-paseo.localhost}
       PM_HOST: ${PM_HOST:-pm.localhost}
       PASEO_UPSTREAM: ${PASEO_UPSTREAM:-127.0.0.1:6768}
-      PM_UPSTREAM: ${PM_UPSTREAM:-127.0.0.1:3224}
+      PM_UPSTREAM: ${PM_UPSTREAM:-127.0.0.1:3225}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
       - caddy_data:/data
