@@ -5,8 +5,18 @@ sessions, workspaces, projects, Markdown, attachments, commands, and SSE; Paseo 
 entry point, workspace mapping, and status surface. Neither service reads the other's
 storage.
 
-The delivery path is same-origin edge routing (`paseo.localhost` → Paseo,
-`pm.localhost` → PM). PM pages run in PM's own origin; Paseo never reimplements them.
+Two delivery paths share one PM build:
+
+- Host split (scheme A): `paseo.localhost` → Paseo, `pm.localhost` → PM. PM pages run in
+  PM's own origin; Paseo never reimplements them.
+- Same-origin embed (scheme B): one host serves Paseo at `/`, PM web at `/pm/`, and the
+  PM gateway at `/pm-api/`. Paseo's `/project-management` route renders PM in a same-origin
+  iframe (Web/Electron); mobile keeps using the system browser for now.
+
+Scheme B requires accepting that Paseo's JavaScript shares a browser trust domain with
+PM: same-origin scripts can send requests to `/pm-api` with PM's cookies. `HttpOnly`
+prevents reading the cookie, not sending it. If that boundary is unacceptable, keep the
+host split.
 
 ## Baseline
 
@@ -131,10 +141,67 @@ Paseo dev restart); directory-plugin reload does not apply to built-ins.
 - `pm.localhost` → `3225`, with `/api/v1/internal/*` blocked, SSE unbuffered, and
   Cookie/Origin/Last-Event-ID preserved
 - `/agent/api/*`, `/mcp`, `/oauth/*`, `/.well-known/*` stay on the PM gateway
+- On the Paseo host, `/pm` and `/pm/*` go to the PM gateway; `/pm-api/*` goes to the same
+  gateway with the prefix stripped. Both PM routes run before the Paseo catch-all, and the
+  prefixed private API path is blocked alongside the unprefixed one.
 
 PM's `PUBLIC_ORIGIN` must equal the PM external origin (for example
 `http://pm.localhost:7000`). PM does not enable CORS; Paseo-side reads go through the
 plugin daemon, never the browser.
+
+### Same-origin embed
+
+The PM gateway serves its web build under `/pm/` and aliases its own public routes under
+`/pm-api/`. Clients keep their `/api/v1/...` paths behind the alias, so
+`/pm-api/api/v1/capabilities` reaches PM's `/api/v1/capabilities` and
+`/pm-api/agent/api/...` reaches the Agent API. PM's gateway and the Paseo edge implement
+the same prefix, so standalone PM and the embedded PM use identical URLs.
+
+| Path on the shared host | Destination                                         |
+| ----------------------- | --------------------------------------------------- |
+| `/`                     | Paseo web/daemon                                    |
+| `/pm/`                  | PM web build (assets, SPA routes, `/pm/legal.html`) |
+| `/pm-api/api/*`         | PM API                                              |
+| `/pm-api/agent/api/*`   | PM Agent API                                        |
+| `/pm-api/health/*`      | PM readiness/liveness                               |
+
+Build and runtime knobs:
+
+- `PM_WEB_BASE` (default `/pm/`) sets Vite's base. Its value must end with `/`.
+- `PM_API_BASE` defaults to `/pm-api`; `VITE_PM_API_BASE` overrides it for a legacy
+  root mount.
+- `PUBLIC_ORIGIN` is the shared origin, for example `https://paseo.example.com`.
+- `PM_SESSION_COOKIE_PATH` defaults to `/`; the default keeps `/oauth/mcp/*` consent
+  working because it reads the browser session on a top-level navigation. A deployment
+  that never exposes `/oauth` on the shared host may set `/pm-api`. Cookie Path does not
+  isolate same-origin JavaScript.
+- App HTML is served with `frame-ancestors 'self'`. Account security, password recovery,
+  recovery-email verification, invitation acceptance, and `/pm/connect-agent` use
+  `frame-ancestors 'none'`, `no-store`, and `no-referrer`; those pages belong in a
+  top-level popup.
+
+Paseo's container:
+
+- `packages/app/src/app/project-management.tsx` opens `@/features/pm-container`.
+- `index.web.tsx` renders a same-origin iframe at `/pm/`; Electron uses the same file.
+  The sandbox keeps `allow-same-origin` so PM's HttpOnly session survives; the frame is
+  trusted, same-origin content, not an untrusted embed.
+- `?pmPath=/pm/...` selects the initial route. PM posts `pm:ready`, `pm:route`,
+  `pm:auth`, `pm:logout`, `pm:unauthorized`, `pm:workspace-lost`, and `pm:error` to the
+  parent; the parent checks both `event.origin` and `event.source` against the frame and
+  ignores everything else.
+- The route is reachable from the Command Center (`Project Management`). PM remains the
+  owner of login, session renewal, workspace access, and logout.
+- `index.tsx` is the mobile fallback: it opens `EXPO_PUBLIC_PM_URL` in the system browser
+  when configured and otherwise points at the PM sidebar entry. A native WebView remains
+  deferred.
+- In the Expo dev server, `packages/app/metro.config.cjs` proxies `/pm` and `/pm-api` to
+  `PASEO_PM_DEV_ORIGIN` (default `http://127.0.0.1:3225`) and rewrites the dev Origin to
+  that target for PM's origin check. This is dev-only; the production edge must set PM's
+  `PUBLIC_ORIGIN` to the shared origin and leave Origin unchanged.
+- The plugin's sidebar entry calls `client.openRoute("/project-management")` when the
+  host provides it, so the bottom-left PM row opens the container instead of a browser
+  tab. Older hosts without `openRoute` fall back to `baseUrl + "/pm"`.
 
 ## Verification
 
@@ -162,17 +229,23 @@ Recorded on 2026-11-26 against the local PM gateway (`:3225`) and the rebuilt PM
 | Page matrix (3225/4195)         | 34/34 production pages passed with an isolated PM test account and Chrome                                                                                                                             |
 | Direct sidebar entry            | Opens `http://127.0.0.1:3225/pm`; unauthenticated load shows PM's login page, not the bootstrap error surface                                                                                         |
 | Plugin                          | typecheck + lint clean; real compiler produced client/server bundles; an isolated daemon loaded all six RPCs and returned live status, the test actor, one workspace, and an explicit unmapped target |
-| PM ready                        | **503** — see the data condition below; reads and all 34 page routes still pass                                                                                                                       |
+| PM ready                        | **200** after removing the stale `859e19a1…/PRJ-001` mount and its project blob registration                                                                                                          |
+| PM web base build               | `PM_WEB_BASE=/pm/`; clean `dist` has 0 root-relative `/assets` URLs, all HTML script/link URLs under `/pm/`, and the provenance marker matches every emitted file                                     |
+| Same-origin gateway             | `/pm/`, `/pm/assets/*`, `/pm/agent/*`, `/pm/legal.html`, `/pm-api/api/*`, `/pm-api/health/*` return 200; `/pm-api/api/v1/internal/*` returns 404; legacy `/api/*` unchanged                           |
+| Same-origin browser load        | `/pm/` boots to the PM login page; requests use `/pm-api/api/v1/*`; an iframe receives `pm:ready` and `pm:route` from PM                                                                              |
+| Paseo container                 | Built web export; `/project-management` renders the sandboxed `/pm/` iframe, PM's login page loads, the toolbar exposes Back/Reload/Open in browser, and `pm:route` updates `?pmPath=`                |
 
 The page matrix used a dedicated account created with PM's `scripts/create-account.ts`,
 a sample workspace, and the session in `artifacts/pm-test-session.json` (ignored, 0600).
 
 ## Known gaps
 
-- `GET /health/ready` is 503 because workspace `859e19a1-1aa3-47a8-8d4d-12949eab5d8c`
-  registers project `PRJ-001` at `.local/analysis/task-detail-verify`, and that directory no
-  longer exists. PM's core mount enumeration and project blob check fail the whole readiness
-  probe on the stale mount. Repair or remove that project mount from the owning workspace;
-  do not recreate a fake project directory.
+- The stale `859e19a1…/PRJ-001` mount and its project blob registration were removed on
+  2026-11-26 because the project directory no longer existed. Do not recreate a fake
+  project directory; a new project starts from an existing source or an explicit upload.
+- Same-origin embedding was verified against the built web bundle, the PM gateway, and a
+  browser iframe. The Caddyfile was not run in this checkout (`caddy` is not installed);
+  run `caddy validate --config deploy/pm-integration/Caddyfile` before deploying.
 - PM page titles and content are Chinese/English by PM's own locale; Paseo only links.
-- The PM Agent API and `/mcp` are routed by the PM gateway. Paseo does not proxy them.
+- The PM Agent API and `/mcp` are routed by the PM gateway. Paseo proxies only
+  `/pm-api/agent/api/*` on the shared origin; `/mcp` and `/oauth/*` stay on the PM host.

@@ -1,5 +1,5 @@
 import { buildPluginSettingsRoute } from "./settings/routes";
-import { router } from "expo-router";
+import { router, type Href } from "expo-router";
 import type { PluginPanelLocation } from "@getpaseo/plugin/client";
 import { navigateToWorkspace } from "@/stores/navigation-active-workspace-store";
 import { useWorkspaceLayoutStore } from "@/stores/workspace-layout-store";
@@ -20,6 +20,17 @@ export function createPluginNavigation(input: {
     return { mode: "pane" as const, paneId };
   }
   return {
+    openRoute(path) {
+      if (
+        !path.startsWith("/") ||
+        path.startsWith("//") ||
+        path.includes("://") ||
+        // eslint-disable-next-line no-control-regex -- Routes must reject raw control characters.
+        /[\\\u0000-\u001f]/.test(path)
+      )
+        throw new Error(`Invalid plugin route: ${path}`);
+      router.push(path as Href);
+    },
     openSettings(pluginId, screenId) {
       router.push(buildPluginSettingsRoute(serverId, pluginId, screenId));
     },

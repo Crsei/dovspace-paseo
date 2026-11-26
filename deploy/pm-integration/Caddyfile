@@ -42,6 +42,50 @@
 		path_regexp `(?i)(?:^|/)(?:\.{1,2}|(?:%2e){1,2})(?:/|$)`
 	}
 
+	# Unified same-origin mount: Paseo serves `/`, PM serves `/pm` and `/pm-api`
+	# on the same host. PM's own host keeps working for standalone access.
+	@paseo_internal_exact {
+		host {$PASEO_HOST:paseo.localhost}
+		path /api/v1/internal
+	}
+
+	@paseo_internal_prefix {
+		host {$PASEO_HOST:paseo.localhost}
+		path /api/v1/internal/*
+	}
+
+	@paseo_pm_internal_exact {
+		host {$PASEO_HOST:paseo.localhost}
+		path /pm-api/api/v1/internal
+	}
+
+	@paseo_pm_internal_prefix {
+		host {$PASEO_HOST:paseo.localhost}
+		path /pm-api/api/v1/internal/*
+	}
+
+	# Decoded, repeated-separator and dot-segment variants of the private PM API
+	# path, including the `/pm-api` prefix used by the shared origin.
+	@paseo_internal_normalized {
+		host {$PASEO_HOST:paseo.localhost}
+		path_regexp `(?i)^/+pm-api/+api/+v1(?:/+|\\+|%2f|%5c|\.{1,2}/|(?:%2e){1,2}/)+internal(?:[/\\%]|$)`
+	}
+
+	@paseo_dot_segments {
+		host {$PASEO_HOST:paseo.localhost}
+		path_regexp `(?i)(?:^|/)(?:\.{1,2}|(?:%2e){1,2})(?:/|$)`
+	}
+
+	@paseo_pm_api {
+		host {$PASEO_HOST:paseo.localhost}
+		path /pm-api /pm-api/*
+	}
+
+	@paseo_pm {
+		host {$PASEO_HOST:paseo.localhost}
+		path /pm /pm/*
+	}
+
 	@paseo host {$PASEO_HOST:paseo.localhost}
 	@pm host {$PM_HOST:pm.localhost}
 
@@ -57,6 +101,26 @@
 		respond @pm_internal_prefix 404
 		respond @pm_internal_normalized 404
 		respond @pm_dot_segments 404
+
+		# Same-origin guard: the prefixed PM API is private too.
+		respond @paseo_internal_exact 404
+		respond @paseo_internal_prefix 404
+		respond @paseo_pm_internal_exact 404
+		respond @paseo_pm_internal_prefix 404
+		respond @paseo_internal_normalized 404
+		respond @paseo_dot_segments 404
+
+		# PM through the shared origin. The prefix is removed before the PM
+		# gateway so `/pm-api/api/...` becomes `/api/...` and
+		# `/pm-api/agent/api/...` becomes `/agent/api/...`.
+		handle @paseo_pm_api {
+			uri strip_prefix /pm-api
+			# SSE is never buffered; Host, Origin, Cookie and Last-Event-ID pass through.
+			reverse_proxy {$PM_UPSTREAM:127.0.0.1:3225} {
+				flush_interval -1
+			}
+		}
+		reverse_proxy @paseo_pm {$PM_UPSTREAM:127.0.0.1:3225}
 
 		# Paseo daemon. Caddy passes the original Host header through, which
 		# Paseo's host-based service routing requires. WebSocket upgrades are

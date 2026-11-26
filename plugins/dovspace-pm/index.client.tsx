@@ -12,20 +12,31 @@ import { PmOverview } from "./client/overview.js";
 import { PmSettings } from "./client/settings.js";
 import { PmWorkspaceBadge } from "./client/workspace-badge.js";
 
-function OpenPmItem({ openScreen }: PluginSidebarItemProps) {
+function OpenPmItem({
+  client,
+  openScreen,
+}: PluginSidebarItemProps & { client: PluginClientContext }) {
   const settings = useSettings(pmConnection);
   const baseUrl = settings.status === "ready" ? settings.values.baseUrl : "http://127.0.0.1:3225";
   const openPm = useCallback(() => {
+    // The host owns the same-origin container; older hosts fall back to the browser.
+    if (typeof client.openRoute === "function") {
+      client.openRoute("/project-management");
+      return;
+    }
     const url = `${baseUrl.replace(/\/$/, "")}/pm`;
     void openExternalUrl(url).catch(() => {
       openScreen({ screenId: "connection" });
     });
-  }, [baseUrl, openScreen]);
+  }, [baseUrl, client, openScreen]);
   return <SidebarRow icon="FolderKanban" onPress={openPm} />;
 }
 
 export default function contribute(client: PluginClientContext) {
   const OverviewScreen = (props: PluginScreenProps) => <PmOverview {...props} client={client} />;
+  const OpenPmSidebarItem = (props: PluginSidebarItemProps) => (
+    <OpenPmItem {...props} client={client} />
+  );
 
   const cleanups = [
     client.addScreen({
@@ -42,12 +53,12 @@ export default function contribute(client: PluginClientContext) {
     client.addSidebarFooterItem({
       id: "open-pm",
       title: messages.message("title"),
-      Component: OpenPmItem,
+      Component: OpenPmSidebarItem,
     }),
     client.addSidebarHeaderItem({
       id: "open-pm-header",
       title: messages.message("title"),
-      Component: OpenPmItem,
+      Component: OpenPmSidebarItem,
     }),
     client.addWorkspaceRowBadgeItem({
       id: "pm-badge",

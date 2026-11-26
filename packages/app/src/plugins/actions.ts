@@ -14,6 +14,7 @@ import { parsePluginOpenScreenInput } from "./surface-contribution";
 import type { InstalledPlugin } from "./types";
 
 export interface PluginNavigation {
+  openRoute(path: string): void;
   openSettings(pluginId: string, screenId: string): void;
   openSurface(pluginId: string, surfaceId: string, params?: PluginScreenParams): void;
   openWorkspacePanel(pluginId: string, panelId: string, location: PluginPanelLocation): void;
@@ -36,6 +37,9 @@ export function createPluginCapabilities(
   return {
     paseo: getPluginClientApi(plugin).paseo,
     rpc: (contract, input) => callPluginRpc(contract, plugin.invoke, input),
+    openRoute(path) {
+      navigation.openRoute(path);
+    },
     openSettings(screenId) {
       if (!plugin.settingsScreens.some((screen) => screen.id === screenId))
         throw new Error(`Plugin settings screen is unavailable: ${screenId}`);

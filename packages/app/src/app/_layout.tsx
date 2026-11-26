@@ -921,6 +921,7 @@ function RootStack() {
       screenOwnedAppearance={ROOT_STACK_SCREEN_OWNED_APPEARANCE}
     >
       <Stack.Screen name="index" />
+      <Stack.Screen name="project-management" />
       <Stack.Protected guard={storeReady}>
         <Stack.Screen name="welcome" />
         <Stack.Screen name="settings/index" />

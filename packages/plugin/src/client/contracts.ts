@@ -370,6 +370,11 @@ export interface PluginCommandCapabilities {
     input: PluginWireInput<ZodInput<InputSchema>>,
   ): Promise<ZodOutput<OutputSchema>>;
   openScreen(input: PluginOpenScreenInput): void;
+  /**
+   * Navigate the Paseo host to an internal app route such as `/project-management`.
+   * Rejects external URLs; use the runtime's external-open capability for those.
+   */
+  openRoute(path: string): void;
   /** The composers `selector` names, whether or not their tabs are open; see `useComposers`. */
   composers(selector: PluginComposerSelector): readonly PluginComposer[];
   /** @deprecated Use `openScreen`. */

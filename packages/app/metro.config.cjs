@@ -1,5 +1,7 @@
 const { getDefaultConfig } = require("expo/metro-config");
 const { resolve } = require("metro-resolver");
+const http = require("node:http");
+const https = require("node:https");
 const path = require("path");
 
 const projectRoot = __dirname;
@@ -115,6 +117,66 @@ if (process.env.PASEO_SERVE_SIM_PREVIEW === "1") {
         }
         middleware(req, res, next);
       });
+    };
+  };
+}
+
+/** Same-origin PM under the Expo dev origin: `/pm` and `/pm-api` reach the PM gateway. */
+function createPmDevProxy(targetValue) {
+  const target = new URL(targetValue);
+  const transport = target.protocol === "https:" ? https : http;
+  return (req, res) => {
+    const url = req.url ?? "/";
+    const pathname = url.split("?", 1)[0];
+    if (
+      pathname !== "/pm" &&
+      !pathname.startsWith("/pm/") &&
+      pathname !== "/pm-api" &&
+      !pathname.startsWith("/pm-api/")
+    )
+      return false;
+    const headers = { ...req.headers, host: target.host };
+    // Dev only: PM validates Origin against its configured PUBLIC_ORIGIN. The
+    // production edge never rewrites Origin; there it is set to the shared origin.
+    if (headers.origin) headers.origin = target.origin;
+    const upstream = transport.request(
+      {
+        protocol: target.protocol,
+        hostname: target.hostname,
+        port: target.port,
+        method: req.method,
+        path: url,
+        headers,
+      },
+      (response) => {
+        res.writeHead(response.statusCode ?? 502, response.headers);
+        response.pipe(res);
+      },
+    );
+    upstream.on("error", () => {
+      if (!res.headersSent) res.writeHead(502, { "content-type": "application/json" });
+      if (!res.destroyed) res.end('{"error":"pm_dev_edge_unavailable"}');
+    });
+    res.on("close", () => {
+      if (!res.writableFinished) upstream.destroy();
+    });
+    req.pipe(upstream);
+    return true;
+  };
+}
+
+{
+  const pmDevTarget = process.env.PASEO_PM_DEV_ORIGIN ?? "http://127.0.0.1:3225";
+  const pmDevProxy = createPmDevProxy(pmDevTarget);
+  const previousEnhanceMiddleware = config.server?.enhanceMiddleware;
+  config.server = config.server ?? {};
+  config.server.enhanceMiddleware = (metroMiddleware, server) => {
+    const middleware = previousEnhanceMiddleware
+      ? previousEnhanceMiddleware(metroMiddleware, server)
+      : metroMiddleware;
+    return (req, res, next) => {
+      if (pmDevProxy(req, res)) return;
+      middleware(req, res, next);
     };
   };
 }
