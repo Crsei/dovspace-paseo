@@ -1,11 +1,11 @@
 import { useUnistyles } from "react-native-unistyles";
-import { bySizing, TOUCH_TARGET } from "@/components/ui/control-sizing";
+import { bySizing } from "@/components/ui/control-sizing";
 import { isWeb } from "@/constants/platform";
 
 export const FOOTER_HEIGHT = 75;
 
 // A bar of icon buttons: touch-sized it is one touch target tall, like an iOS navigation bar.
-const BAR_HEIGHT = { touch: TOUCH_TARGET, pointer: 36 };
+const BAR_HEIGHT = { touch: 56, pointer: 48 };
 
 // Shared header inner height from `md` up (excluding safe area insets and border).
 // Used by both agent header (ScreenHeader) and explorer sidebar header

@@ -61,7 +61,12 @@ const styles = StyleSheet.create((theme) => ({
     padding: theme.spacing[6],
     backgroundColor: theme.colors.surface0,
   },
-  title: { color: theme.colors.foreground, fontSize: theme.fontSize.lg, fontWeight: "600" },
+  title: {
+    color: theme.colors.foreground,
+    fontSize: theme.fontSize.control,
+    lineHeight: theme.lineHeight.control,
+    fontWeight: theme.fontWeight.medium,
+  },
   body: {
     maxWidth: 420,
     color: theme.colors.foregroundMuted,

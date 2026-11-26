@@ -1,8 +1,9 @@
 import { ArrowLeft } from "lucide-react-native";
 import type { ReactNode } from "react";
-import { Text, View } from "react-native";
+import { View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
-import { PageTitle, type PageTitleParent } from "@/components/page-layout";
+import { PageTitle as PageLayoutTitle, type PageTitleParent } from "@/components/page-layout";
+import { PageTitle } from "@/components/headers/page-title";
 import { Button } from "@/components/ui/button";
 import { useIsCompactFormFactor } from "@/constants/layout";
 
@@ -55,7 +56,7 @@ export function SettingsDetailHeader({
   const isCompact = useIsCompactFormFactor();
   if (!isCompact)
     return (
-      <PageTitle
+      <PageLayoutTitle
         parent={parent}
         icon={icon}
         title={title}
@@ -67,9 +68,9 @@ export function SettingsDetailHeader({
   return (
     <View style={styles.titleRow}>
       {icon}
-      <Text style={styles.title} numberOfLines={1} testID={titleTestID}>
+      <PageTitle numberOfLines={1} testID={titleTestID}>
         {title}
-      </Text>
+      </PageTitle>
       {trailing}
     </View>
   );
@@ -87,11 +88,5 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     gap: theme.spacing[3],
     marginBottom: theme.spacing[4],
-  },
-  title: {
-    color: theme.colors.foreground,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.medium,
-    flexShrink: 1,
   },
 }));

@@ -95,7 +95,7 @@ const styles = StyleSheet.create((theme) => {
       alignItems: "center",
       justifyContent: "center",
       gap: theme.spacing[2],
-      borderRadius: theme.borderRadius.lg,
+      borderRadius: theme.borderRadius.md,
       borderWidth: 1,
       borderColor: "transparent",
     },
@@ -112,12 +112,12 @@ const styles = StyleSheet.create((theme) => {
       borderColor: theme.colors.accent,
     },
     secondary: {
-      backgroundColor: theme.colors.surface3,
-      borderColor: theme.colors.surface3,
+      backgroundColor: theme.colors.surface1,
+      borderColor: theme.colors.border,
     },
     outline: {
-      backgroundColor: "transparent",
-      borderColor: theme.colors.borderAccent,
+      backgroundColor: theme.colors.surface0,
+      borderColor: theme.colors.border,
     },
     ghost: {
       backgroundColor: "transparent",
@@ -131,7 +131,7 @@ const styles = StyleSheet.create((theme) => {
       opacity: 0.85,
     },
     disabled: {
-      opacity: theme.opacity[50],
+      opacity: 0.45,
     },
     text: {
       color: theme.colors.foreground,

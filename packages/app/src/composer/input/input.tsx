@@ -2545,7 +2545,7 @@ const styles = StyleSheet.create((theme: Theme) => ({
   attachButton: {
     ...toolbarSlot(),
     marginRight: bySizing({ touch: -2, pointer: 0 }),
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -2557,14 +2557,14 @@ const styles = StyleSheet.create((theme: Theme) => ({
   },
   voiceButton: {
     ...toolbarSlot(),
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     alignItems: "center",
     justifyContent: "center",
   },
   voiceButtonRecordingDisc: {
     width: TOOLBAR_DISC_SIZE,
     height: TOOLBAR_DISC_SIZE,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.destructive,
     alignItems: "center",
     justifyContent: "center",
@@ -2578,7 +2578,7 @@ const styles = StyleSheet.create((theme: Theme) => ({
   sendButtonDisc: {
     width: TOOLBAR_DISC_SIZE,
     height: TOOLBAR_DISC_SIZE,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.accent,
     alignItems: "center",
     justifyContent: "center",
@@ -2587,7 +2587,7 @@ const styles = StyleSheet.create((theme: Theme) => ({
     minWidth: TOOLBAR_DISC_SIZE,
     height: TOOLBAR_DISC_SIZE,
     paddingHorizontal: theme.spacing[3],
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.accent,
     alignItems: "center",
     justifyContent: "center",

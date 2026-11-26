@@ -259,18 +259,21 @@ const styles = StyleSheet.create((theme) => ({
     flexShrink: 1,
     minWidth: 0,
     color: theme.colors.foregroundMuted,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.normal,
+    fontSize: theme.fontSize.control,
+    lineHeight: theme.lineHeight.control,
+    fontWeight: theme.fontWeight.medium,
   },
   hintText: {
     color: theme.colors.foregroundMuted,
     fontSize: theme.fontSize.sm,
-    lineHeight: Math.round(theme.fontSize.sm * 1.4),
+    lineHeight: theme.lineHeight.meta,
+    fontWeight: theme.fontWeight.medium,
   },
   errorText: {
     color: theme.colors.palette.red[300],
     fontSize: theme.fontSize.sm,
-    lineHeight: Math.round(theme.fontSize.sm * 1.4),
+    lineHeight: theme.lineHeight.meta,
+    fontWeight: theme.fontWeight.medium,
   },
 }));
 

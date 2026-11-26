@@ -46,7 +46,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: 6,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     borderWidth: 1,
     borderColor: theme.colors.border,
     backgroundColor: theme.colors.surface3,
@@ -71,7 +71,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   pillText: {
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.normal,
+    lineHeight: theme.lineHeight.meta,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foregroundMuted,
   },
   pillTextSuccess: {

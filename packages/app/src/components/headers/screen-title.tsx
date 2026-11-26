@@ -28,10 +28,8 @@ const styles = StyleSheet.create((theme) => ({
     flexShrink: 1,
     minWidth: 0,
     fontSize: theme.fontSize.base,
-    fontWeight: {
-      xs: "400",
-      md: "300",
-    },
+    lineHeight: theme.lineHeight.control,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foreground,
   },
 }));

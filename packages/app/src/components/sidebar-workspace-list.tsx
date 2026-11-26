@@ -32,7 +32,7 @@ import {
   type ActiveWorkspaceSelection,
 } from "@/stores/navigation-active-workspace-store";
 import { StyleSheet, withUnistyles } from "react-native-unistyles";
-import { density, densityIconBox, densityIconProps } from "@/styles/density";
+import { densityIconBox, densityIconProps } from "@/styles/density";
 import type { Theme } from "@/styles/theme";
 import type { SidebarSurfaceBackdrop } from "@/styles/surface-backdrop";
 import { getSidebarRowBackdrop } from "@/components/sidebar/sidebar-row-backdrop";
@@ -155,7 +155,10 @@ import type { HostBadgeModel } from "@/hosts/appearance";
 import { useHostBadges } from "@/hosts/use-host-badges";
 import { useSidebarRowItems } from "@/components/sidebar/display-preferences/model";
 import { PullRequestStateIcon } from "@/git/pull-request-state-icon";
-import { bySizing } from "@/components/ui/control-geometry";
+import { bySizing, TOUCH_TARGET } from "@/components/ui/control-geometry";
+
+const SINGLE_LINE_ROW_MIN_HEIGHT = bySizing({ touch: TOUCH_TARGET, pointer: 30 });
+const WORKSPACE_ROW_MIN_HEIGHT = bySizing({ touch: TOUCH_TARGET, pointer: 36 });
 
 const workspaceKeyExtractor = (workspace: SidebarWorkspacePlacement) => workspace.workspaceKey;
 
@@ -2602,19 +2605,19 @@ const styles = StyleSheet.create((theme) => ({
     paddingBottom: theme.spacing[3],
   },
   workspaceListContainer: {},
-  // Kept in step with `workspaceRow` above. It stands in a project's list where a workspace row
-  // would be, so it takes that row's geometry and both of its fills.
+  // A single-line nav row, so it takes the tighter row height and the same 6px radius. It stands in
+  // a project's list where a workspace row would be, so it keeps that row's fills.
   //
-  // The one departure is the extra left padding: it only ever renders under its project header, so
+  // The departure is the extra left padding: it only ever renders under its project header, so
   // the step in reads as belonging to that project. Padding rather than margin, so the hover and
   // pressed fills stay the same box as every other row in the sidebar.
   newWorkspaceGhostRow: {
-    minHeight: density.rowHeight,
+    minHeight: SINGLE_LINE_ROW_MIN_HEIGHT,
     marginBottom: theme.spacing[0.5],
-    paddingVertical: theme.spacing[2],
+    paddingVertical: theme.spacing[1],
     paddingLeft: theme.spacing[4],
     paddingRight: theme.spacing[3],
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing[2],
@@ -2637,22 +2640,26 @@ const styles = StyleSheet.create((theme) => ({
   },
   newWorkspaceGhostText: {
     color: theme.colors.foregroundMuted,
-    fontSize: theme.fontSize.base,
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
     minWidth: 0,
     flexShrink: 1,
   },
   newWorkspaceGhostTextHovered: {
-    fontSize: theme.fontSize.base,
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
     minWidth: 0,
     flexShrink: 1,
     color: theme.colors.foreground,
   },
   projectRow: {
     position: "relative",
-    minHeight: density.rowHeight,
-    paddingVertical: theme.spacing[2],
+    minHeight: SINGLE_LINE_ROW_MIN_HEIGHT,
+    paddingVertical: theme.spacing[0.5],
     paddingHorizontal: theme.spacing[2],
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     marginBottom: theme.spacing[1],
     flexDirection: "row",
     alignItems: "center",
@@ -2690,8 +2697,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   projectTitle: {
     color: theme.colors.foregroundMuted,
-    fontSize: theme.fontSize.base,
-    fontWeight: "400",
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
     minWidth: 0,
     flexShrink: 1,
   },
@@ -2775,12 +2783,12 @@ const styles = StyleSheet.create((theme) => ({
     right: theme.spacing[2],
   },
   workspaceRow: {
-    minHeight: density.rowHeight,
+    minHeight: WORKSPACE_ROW_MIN_HEIGHT,
     marginBottom: theme.spacing[0.5],
     paddingVertical: theme.spacing[2],
     paddingLeft: theme.spacing[2],
     paddingRight: theme.spacing[3],
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "center",
@@ -2838,7 +2846,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   workspaceArchivingOverlay: {
     ...StyleSheet.absoluteFill,
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: `${theme.colors.surface0}cc`,
     alignItems: "center",
     justifyContent: "center",
@@ -2853,9 +2861,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   workspaceBranchText: {
     color: theme.colors.foreground,
-    fontSize: theme.fontSize.base,
-    fontWeight: "400",
-    lineHeight: 20,
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
     opacity: 0.76,
     flex: 1,
     minWidth: 0,
@@ -2879,7 +2887,7 @@ const styles = StyleSheet.create((theme) => ({
   },
   kebabButton: {
     padding: 2,
-    borderRadius: 4,
+    borderRadius: theme.borderRadius.md,
     marginLeft: 2,
   },
   kebabButtonHovered: {

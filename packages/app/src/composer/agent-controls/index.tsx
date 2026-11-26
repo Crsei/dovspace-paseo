@@ -1551,7 +1551,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingHorizontal: 0,
     flexShrink: 0,
     backgroundColor: "transparent",
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
   },
   combinedSheetControls: {
     gap: theme.spacing[1],

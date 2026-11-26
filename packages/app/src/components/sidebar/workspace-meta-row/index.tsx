@@ -364,7 +364,8 @@ const styles = StyleSheet.create((theme) => ({
   identityText: {
     color: theme.colors.foregroundMuted,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 1,
   },
   itemPressed: {
@@ -373,7 +374,8 @@ const styles = StyleSheet.create((theme) => ({
   separator: {
     color: theme.colors.foregroundExtraMuted,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 0,
   },
   separatorHovered: { color: theme.colors.foregroundSidebarHover },
@@ -403,44 +405,51 @@ const styles = StyleSheet.create((theme) => ({
   serviceName: {
     color: theme.colors.statusSuccess,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 1,
   },
   serviceNameUnhealthy: {
     color: theme.colors.statusDanger,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 1,
   },
   prText: {
     color: theme.colors.foregroundMuted,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 0,
   },
   prTextHovered: {
     color: theme.colors.foreground,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 0,
   },
   // Matches the indicator — see COLOR_MAPPINGS in check-indicator.tsx.
   checksTextPassed: {
     color: theme.colors.statusSuccess,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 0,
   },
   checksTextFailed: {
     color: theme.colors.statusDanger,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 0,
   },
   checksTextRunning: {
     color: theme.colors.statusWarning,
     fontSize: theme.fontSize.sm,
-    lineHeight: 16,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     flexShrink: 0,
   },
 }));

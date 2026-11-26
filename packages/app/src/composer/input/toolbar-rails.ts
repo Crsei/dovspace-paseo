@@ -51,10 +51,13 @@ const DISC_EDGE_INSET =
  */
 const DISC_CORNER_NEST = COMPOSER_PADDING.touch.horizontal - DISC_EDGE_INSET;
 
-/** Touch-sized the composer's corner is concentric with the disc nested in it. */
+/**
+ * Touch-sized the composer's corner is concentric with the disc nested in it; pointer-sized it is
+ * PM's 24px composer shell.
+ */
 export const COMPOSER_CORNER_RADIUS = bySizing({
   touch: TOOLBAR_DISC_SIZES.touch / 2 + DISC_EDGE_INSET,
-  pointer: 16,
+  pointer: 24,
 });
 
 /**

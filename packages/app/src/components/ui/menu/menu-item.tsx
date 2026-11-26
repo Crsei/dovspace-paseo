@@ -40,11 +40,11 @@ const successMapping = (theme: Theme) => ({ color: theme.colors.palette.green[50
  * the sheet were the thing being asked about. `md` is where `useIsCompactFormFactor` divides, so
  * this and the popover/sheet choice always turn over together.
  *
- * On desktop the number is exactly the content: 18 line + 8 padding + 2 border. Leave the text's
- * `lineHeight` to the platform and the content outgrows `minHeight`, which then does nothing and
- * the rows drift taller again. On compact, `minHeight` leads instead and the label centres in it.
+ * On desktop the content is 20 line + 8 padding + 2 border, so the row settles at 30 rather than
+ * the 28 minimum. Leave the text's `lineHeight` to the platform and the content outgrows
+ * `minHeight`, which then does nothing and the rows drift taller again. On compact, `minHeight`
+ * leads instead and the label centres in it.
  */
-const MENU_ITEM_LINE_HEIGHT = 18;
 
 /**
  * Space between two rows, owned by the page rather than the rows. Zero because only one row is
@@ -458,6 +458,8 @@ const styles = StyleSheet.create((theme) => ({
   },
   labelText: {
     fontSize: theme.fontSize.sm,
+    lineHeight: theme.lineHeight.meta,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foregroundMuted,
   },
   // `border` sits between surface1 and surface2, which put it within a hair of the hover fill and
@@ -487,11 +489,15 @@ const styles = StyleSheet.create((theme) => ({
   },
   hintText: {
     fontSize: theme.fontSize.sm,
+    lineHeight: theme.lineHeight.meta,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foregroundMuted,
     flexShrink: 1,
   },
   tooltipText: {
     fontSize: theme.fontSize.base,
+    lineHeight: theme.lineHeight.body,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foreground,
   },
   // The fill is inset from the surface's edges and rounded, so a hovered row reads as a chip
@@ -538,8 +544,9 @@ const styles = StyleSheet.create((theme) => ({
   fieldInput: {
     flex: 1,
     minWidth: 0,
-    fontSize: theme.fontSize.sm,
-    lineHeight: MENU_ITEM_LINE_HEIGHT,
+    fontSize: theme.fontSize.control,
+    lineHeight: theme.lineHeight.control,
+    fontWeight: theme.fontWeight.medium,
     paddingVertical: 0,
     paddingHorizontal: 0,
   },
@@ -561,9 +568,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   itemText: {
     fontSize: theme.fontSize.base,
-    lineHeight: MENU_ITEM_LINE_HEIGHT,
+    lineHeight: theme.lineHeight.body,
     color: theme.colors.foreground,
-    fontWeight: theme.fontWeight.normal,
+    fontWeight: theme.fontWeight.medium,
   },
   itemTextMuted: {
     color: theme.colors.foregroundMuted,
@@ -577,6 +584,8 @@ const styles = StyleSheet.create((theme) => ({
   itemDescription: {
     marginTop: 2,
     fontSize: theme.fontSize.sm,
+    lineHeight: theme.lineHeight.meta,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foregroundMuted,
   },
   checkSlot: {

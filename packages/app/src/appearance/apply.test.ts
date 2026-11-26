@@ -30,13 +30,22 @@ interface FakeTheme {
     content: number;
     sm: number;
     base: number;
+    control: number;
     lg: number;
     xl: number;
     "2xl": number;
     "3xl": number;
     "4xl": number;
   };
-  lineHeight: { diff: number };
+  lineHeight: {
+    diff: number;
+    meta: number;
+    control: number;
+    body: number;
+    reading: number;
+    section: number;
+    page: number;
+  };
   contentMaxWidth: Theme["contentMaxWidth"];
   colors: { foreground: string; syntax: Record<string, string> };
 }
@@ -47,16 +56,17 @@ function makeFakeTheme(): FakeTheme {
     fontFamily: { ui: "seed-ui-stack", mono: "seed-mono-stack" },
     fontSize: {
       code: 12,
-      content: 15,
+      content: 14,
       sm: 12,
       base: 14,
+      control: 13,
       lg: 16,
       xl: 18,
       "2xl": 20,
       "3xl": 22,
       "4xl": 26,
     },
-    lineHeight: { diff: 22 },
+    lineHeight: { diff: 22, meta: 16, control: 20, body: 20, reading: 24, section: 24, page: 28 },
     contentMaxWidth: 820,
     colors: { foreground: "#fff", syntax: {} },
   };
@@ -67,7 +77,7 @@ function makeInput(overrides: Partial<AppearanceInput> = {}): AppearanceInput {
     uiFontFamily: "",
     monoFontFamily: "",
     uiBaseFontSize: 14,
-    contentFontSize: 15,
+    contentFontSize: 14,
     codeFontSize: 12,
     contentMaxWidth: 820,
     syntaxTheme: "one",
@@ -132,9 +142,68 @@ describe("applyAppearance", () => {
     const { fontSize } = runCapturedUpdater();
     expect(fontSize.base).toBe(15);
     expect(fontSize.sm).toBe(13);
+    expect(fontSize.control).toBe(14);
     expect(fontSize.lg).toBe(17);
     expect(fontSize.xl).toBe(19);
     expect(fontSize["4xl"]).toBe(28);
+  });
+
+  it("scales the interface line-height roles with the UI base factor", () => {
+    applyAppearance(makeInput({ uiBaseFontSize: 15 }));
+
+    const { lineHeight } = runCapturedUpdater();
+    expect(lineHeight.meta).toBe(17);
+    expect(lineHeight.control).toBe(21);
+    expect(lineHeight.body).toBe(21);
+    expect(lineHeight.reading).toBe(24); // content size, not the UI base
+    expect(lineHeight.section).toBe(26);
+    expect(lineHeight.page).toBe(30);
+  });
+
+  it("scales reading line height with the content size, not the UI base", () => {
+    applyAppearance(makeInput({ uiBaseFontSize: 18, contentFontSize: 16 }));
+    expect(runCapturedUpdater().lineHeight.reading).toBe(
+      Math.round((24 / 14) * 16), // canonical 24/14 ratio, 27
+    );
+
+    applyAppearance(makeInput({ uiBaseFontSize: 14, contentFontSize: 16 }));
+    expect(runCapturedUpdater(updateTheme.mock.calls.length - 1).lineHeight.reading).toBe(27);
+  });
+
+  it("keeps the interface line heights at authored sizes for the default base", () => {
+    applyAppearance(makeInput({ uiBaseFontSize: 14 }));
+
+    const { fontSize, lineHeight } = runCapturedUpdater();
+    expect(fontSize.control).toBe(13);
+    expect(lineHeight).toEqual({
+      diff: 18,
+      meta: 16,
+      control: 20,
+      body: 20,
+      reading: 24,
+      section: 24,
+      page: 28,
+    });
+  });
+
+  it("derives line heights from the canonical ramp, not the live theme", () => {
+    applyAppearance(makeInput({ uiBaseFontSize: 15 }));
+
+    const updater = updateTheme.mock.calls[0]?.[1] as unknown as ThemeUpdater;
+    const alreadyScaled = makeFakeTheme();
+    alreadyScaled.lineHeight = {
+      diff: 4,
+      meta: 4,
+      control: 4,
+      body: 4,
+      reading: 4,
+      section: 4,
+      page: 4,
+    };
+
+    const { lineHeight } = updater(alreadyScaled);
+    expect(lineHeight.page).toBe(30); // rebuilt from LINE_HEIGHT, not the live value of 4
+    expect(lineHeight.control).toBe(21);
   });
 
   it("derives the UI ramp from the canonical sizes, not the live theme (no compounding)", () => {
@@ -149,6 +218,7 @@ describe("applyAppearance", () => {
       content: 4,
       sm: 4,
       base: 4,
+      control: 4,
       lg: 4,
       xl: 4,
       "2xl": 4,

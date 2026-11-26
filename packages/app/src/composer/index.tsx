@@ -2755,7 +2755,7 @@ const styles = StyleSheet.create((theme: Theme) => ({
   cancelButtonDisc: {
     width: TOOLBAR_DISC_SIZE,
     height: TOOLBAR_DISC_SIZE,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.palette.red[600],
     alignItems: "center",
     justifyContent: "center",
@@ -2774,14 +2774,14 @@ const styles = StyleSheet.create((theme: Theme) => ({
   voiceModeDisc: {
     width: TOOLBAR_DISC_SIZE,
     height: TOOLBAR_DISC_SIZE,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     backgroundColor: theme.colors.surface3,
     alignItems: "center",
     justifyContent: "center",
   },
   realtimeVoiceButton: {
     ...toolbarSlot(),
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     alignItems: "center",
     justifyContent: "center",
   },
@@ -2838,7 +2838,7 @@ const styles = StyleSheet.create((theme: Theme) => ({
   queueActionButton: {
     width: 32,
     height: 32,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
     alignItems: "center",
     justifyContent: "center",
     backgroundColor: theme.colors.surface2,

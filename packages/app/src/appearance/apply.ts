@@ -4,6 +4,7 @@ import {
   DEFAULT_UI_FONT_STACK,
   DEFAULT_MONO_FONT_STACK,
   FONT_SIZE,
+  LINE_HEIGHT,
   REGISTERED_THEMES,
   themeContentMaxWidth,
   type Theme,
@@ -40,6 +41,7 @@ function scaleFontSize(
   return {
     sm: Math.round(FONT_SIZE.sm * r),
     base: Math.round(FONT_SIZE.base * r),
+    control: Math.round(FONT_SIZE.control * r),
     lg: Math.round(FONT_SIZE.lg * r),
     xl: Math.round(FONT_SIZE.xl * r),
     "2xl": Math.round(FONT_SIZE["2xl"] * r),
@@ -51,13 +53,34 @@ function scaleFontSize(
 }
 
 /**
+ * Build the interface line-height ramp from the canonical `LINE_HEIGHT` ramp the same way
+ * `scaleFontSize` builds the size ramp: proportional to the UI base factor so the type hierarchy
+ * stays intact, and derived from the authored values rather than the live theme so repeated
+ * applies never compound. `reading` follows the content size, which is an absolute axis, and
+ * `diff` is set separately: it couples to the absolute code size.
+ */
+function scaleLineHeight(uiBaseSize: number, contentSize: number): Theme["lineHeight"] {
+  const r = uiBaseSize / FONT_SIZE.base;
+  return {
+    diff: LINE_HEIGHT.diff, // replaced by the code-size-derived value at apply time
+    meta: Math.round(LINE_HEIGHT.meta * r),
+    control: Math.round(LINE_HEIGHT.control * r),
+    body: Math.round(LINE_HEIGHT.body * r),
+    reading: Math.round((LINE_HEIGHT.reading / FONT_SIZE.base) * contentSize),
+    section: Math.round(LINE_HEIGHT.section * r),
+    page: Math.round(LINE_HEIGHT.page * r),
+  };
+}
+
+/**
  * Patch every registered Unistyles theme with the user's appearance choices.
  * All keys in `ALL_THEME_KEYS` are patched because the active theme can change
  * and adaptive mode can flip light/dark — patching all keys keeps the active key
  * always current and makes ordering vs `setTheme`/`setAdaptiveThemes` irrelevant.
  *
  * The updater preserves the active theme wholesale (surfaces, accents,
- * terminal) and only patches the font ramp, content width, and syntax palette.
+ * terminal) and only patches the font ramp, the interface line-height roles,
+ * content width, and syntax palette.
  * `updateTheme` replaces the stored theme rather than merging, so we spread
  * `...t` first.
  */
@@ -82,7 +105,11 @@ export function applyAppearance(input: AppearanceInput): void {
         input.contentFontSize,
         input.codeFontSize,
       );
-      const lineHeight = { ...t.lineHeight, diff: diffLineHeight };
+      const lineHeight = {
+        ...t.lineHeight,
+        ...scaleLineHeight(input.uiBaseFontSize, input.contentFontSize),
+        diff: diffLineHeight,
+      };
       if (t.colorScheme === "light") {
         return {
           ...t,

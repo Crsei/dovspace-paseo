@@ -562,8 +562,8 @@ const styles = StyleSheet.create((theme) => ({
   // to the meta row, so it takes the full width the trailing slot leaves behind.
   workspaceBranchText: {
     color: theme.colors.foreground,
-    fontSize: theme.fontSize.base,
-    fontWeight: "400",
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
     lineHeight: TITLE_LINE_HEIGHT,
     opacity: 0.76,
     flex: 1,

@@ -2,6 +2,12 @@ import { Platform, type ViewStyle } from "react-native";
 import { isWeb } from "@/constants/platform";
 import { darkHighlightColors, lightHighlightColors } from "@getpaseo/highlight";
 import { deriveSurfaceStates } from "./derive-colors";
+import {
+  PM_DARK_COLORS,
+  PM_LIGHT_COLORS,
+  PM_STATUS_COLORS,
+  PM_STATUS_TINT_ALPHA,
+} from "./pm-tokens.gen";
 
 export const baseColors = {
   // Base colors
@@ -125,46 +131,25 @@ const darkDiffColors = {
   diffDeletion: "#ef4444", // red-500
 };
 
-// Status colors — semantic signals for success/danger/warning/merged. There is exactly one
-// token per signal, and every status surface uses it: PR state icons, CI check icons and
-// pies, diff stats, file-change icons, status badges, usage bars. Status *dots* are the
-// exception and have their own band below. A surface does not otherwise get a quieter or
-// louder variant of a status color because of where it sits — if a dense list feels loud,
-// that is a density or weight problem, not a color problem.
-//
-// The level is set by the densest consumer, the sidebar workspace list: quiet enough that a
-// column of green checks reads as one line of subtitle and the single red row still stands
-// out, saturated enough to name the state on its own. Every other surface follows it.
-//
-// Normalized, not hand-picked. Every color below shares one lightness and one chroma; only
-// the hue changes, and each hue is the one that family already had. Chroma is a fixed
-// fraction of what sRGB allows at that lightness and hue, because the gamut is lopsided —
-// amber runs out of room long before red does, so a literal equal-chroma set leaves amber
-// flat and red screaming. Equal fractions is what makes four hues read as one family.
-// Regenerate with the same rule rather than nudging one value.
-//
-// Hues are fixed per family across both themes: success 150, danger 27, warning 70.5,
-// merged 300.
-const lightStatusColors = {
-  // L=0.50, chroma 60% of gamut max
-  statusSuccess: "#3e704a",
-  statusDanger: "#9d433b",
-  statusWarning: "#7b5d39",
-  statusMerged: "#7347af",
-};
+// Status colors — semantic signals for success/danger/warning/merged. They mirror PM's
+// semantic status tokens (--success, --destructive, --warning, --agent), so a PR state icon,
+// CI check, diff stat, file-change icon, status badge and usage bar all name the state with
+// PM's color. There is exactly one token per signal; status *dots* are the exception and have
+// their own band below.
+const lightStatusColors = PM_STATUS_COLORS.light;
+const darkStatusColors = PM_STATUS_COLORS.dark;
 
-const darkStatusColors = {
-  // L=0.70, chroma 55% of gamut max
-  statusSuccess: "#6cb17b",
-  statusDanger: "#d8847b",
-  statusWarning: "#c09664",
-  statusMerged: "#a890d5",
-};
+interface StatusColors {
+  statusSuccess: string;
+  statusDanger: string;
+  statusWarning: string;
+  statusMerged: string;
+}
 
-// Status tints — the fill of a status badge. The status color itself at low opacity, so a
-// badge takes its state's hue from the same source as its text and never drifts from it.
-// Dark surfaces swallow more of the tint, so the dark band runs a little stronger.
-function statusTints(colors: typeof lightStatusColors, alphaHex: string) {
+// Status tints — the fill of a status badge. The status color itself at PM's 8% mix over the
+// surface, so a badge takes its state's hue from the same source as its text and never drifts
+// from it.
+function statusTints(colors: StatusColors, alphaHex: string) {
   return {
     statusSuccessTint: `${colors.statusSuccess}${alphaHex}`,
     statusDangerTint: `${colors.statusDanger}${alphaHex}`,
@@ -172,17 +157,16 @@ function statusTints(colors: typeof lightStatusColors, alphaHex: string) {
   };
 }
 
-const lightStatusTints = statusTints(lightStatusColors, "1f"); // 12%
-const darkStatusTints = statusTints(darkStatusColors, "29"); // 16%
+const lightStatusTints = statusTints(lightStatusColors, PM_STATUS_TINT_ALPHA);
+const darkStatusTints = statusTints(darkStatusColors, PM_STATUS_TINT_ALPHA);
 
 // Status *dot* colors — the small filled discs on a sidebar row, and the glyphs that stand in
-// for them. Same four hues and the same generation rule as the status colors above, but its
-// own band, because a dot is doing a different job than a check icon or a host badge.
+// for them. Same four hues as the status colors above, but its own band, because a dot is doing
+// a different job than a check icon or a host badge.
 //
-// A dot is 6pt of solid color with no shape to read and no label attached. At the status
-// band's lightness the dots read dimmer than the static text and icons beside them on the same
-// row, which is backwards — the dot is the row's state. The loudness comes from chroma: 90% of
-// gamut max against the status family's 55-60%.
+// A dot is 6pt of solid color with no shape to read and no label attached. It has to out-read
+// the static text and icons beside it on the same row, because the dot is the row's state. The
+// loudness comes from chroma: 90% of gamut max.
 //
 // Lightness is set by hue separation, not by distance from the surface. A dark dot on a light
 // surface has plenty of contrast but the four hues collapse into each other at 6pt — dark green,
@@ -241,6 +225,7 @@ export interface LightThemeConfig {
   primary: string;
   primaryForeground: string;
   destructive: string;
+  destructiveForeground?: string;
   terminalBlack: string;
   terminalBrightBlack: string;
   ring?: string;
@@ -291,8 +276,8 @@ export function buildLightSemanticColors(tint: LightThemeConfig) {
     accentForeground: tint.accentForeground ?? tint.surface0,
 
     destructive: tint.destructive,
-    destructiveForeground: tint.surface0,
-    success: tint.accent,
+    destructiveForeground: tint.destructiveForeground ?? tint.surface0,
+    success: lightStatusColors.statusSuccess,
 
     background: tint.surface0,
     popover: tint.surface0,
@@ -322,23 +307,8 @@ export function buildLightSemanticColors(tint: LightThemeConfig) {
 }
 
 const lightSemanticColors = buildLightSemanticColors({
-  surface0: "#ffffff",
-  surface1: "#fafafa",
-  surface2: "#f4f4f5",
-  surface3: "#e4e4e7",
-  surface4: "#d4d4d8",
-  surfaceSidebar: "#f4f4f5",
-  foreground: "#1a1a1e",
-  foregroundMuted: "#71717a",
-  foregroundExtraMuted: "#a1a1aa",
-  border: "#e4e4e7",
-  borderAccent: "#ececf1",
-  accent: "#20744A",
-  accentBright: "#239956",
-  accentForeground: "#ffffff",
-  primary: "#18181b",
-  primaryForeground: "#fafafa",
-  destructive: "#b04138",
+  ...PM_LIGHT_COLORS,
+  destructiveForeground: PM_LIGHT_COLORS.surfaceSidebar,
   terminalBlack: "#1a1a1e",
   terminalBrightBlack: "#3f3f46",
 });
@@ -353,6 +323,7 @@ export interface DarkThemeConfig {
   surface2: string;
   surface3: string;
   surface4: string;
+  surfaceWorkspace?: string;
   surfaceSidebar: string;
   surfaceSidebarHover?: string;
   surfaceSidebarSelected?: string;
@@ -366,9 +337,12 @@ export interface DarkThemeConfig {
   accentBright: string;
   accentForeground?: string;
   destructive: string;
+  destructiveForeground?: string;
   terminalBlack: string;
   terminalBrightBlack: string;
   foreground?: string;
+  primary?: string;
+  primaryForeground?: string;
   ring?: string;
 }
 
@@ -404,7 +378,7 @@ export function buildDarkSemanticColors(tint: DarkThemeConfig) {
     surfaceSidebarSelected: tint.surfaceSidebarSelected ?? sidebarStates.selected,
     foregroundSidebarHover: tint.foregroundSidebarHover ?? tint.foregroundExtraMuted,
     foregroundSidebarSelected: tint.foregroundSidebarSelected ?? tint.foregroundExtraMuted,
-    surfaceWorkspace: tint.surface1,
+    surfaceWorkspace: tint.surfaceWorkspace ?? tint.surface1,
     interactionHighlight: "rgba(255, 255, 255, 0.08)",
 
     foreground,
@@ -419,15 +393,15 @@ export function buildDarkSemanticColors(tint: DarkThemeConfig) {
     accentForeground: tint.accentForeground ?? "#ffffff",
 
     destructive: tint.destructive,
-    destructiveForeground: "#ffffff",
-    success: tint.accent,
+    destructiveForeground: tint.destructiveForeground ?? "#ffffff",
+    success: darkStatusColors.statusSuccess,
 
     // Legacy aliases (for gradual migration)
     background: tint.surface0,
     popover: tint.surface2,
     popoverForeground: foreground,
-    primary: foreground,
-    primaryForeground: tint.surface0,
+    primary: tint.primary ?? foreground,
+    primaryForeground: tint.primaryForeground ?? tint.surface0,
     mutedForeground: tint.foregroundMuted,
     ring,
 
@@ -454,21 +428,11 @@ export function buildDarkSemanticColors(tint: DarkThemeConfig) {
 // Dark tint definitions
 // ---------------------------------------------------------------------------
 
-// Paseo — subtle teal-green tint (default)
+// Paseo — PM's default palette (the fixed dark theme)
 const paseoDarkColors = buildDarkSemanticColors({
-  surface0: "#181B1A",
-  surface1: "#1E2120",
-  surface2: "#272A29",
-  surface3: "#434645",
-  surface4: "#595B5B",
-  surfaceSidebar: "#141716",
-  foregroundMuted: "#A1A5A4",
-  foregroundExtraMuted: "#717574",
-  border: "#252B2A",
-  borderAccent: "#2F3534",
-  accent: "#20744A",
-  accentBright: "#7ccba0",
-  destructive: "#c64f43", // warm red, hue ~7 — reads as red (not pink) against the green tint
+  ...PM_DARK_COLORS,
+  surfaceWorkspace: PM_DARK_COLORS.surface0,
+  destructiveForeground: PM_DARK_COLORS.surfaceSidebar,
   terminalBlack: "#141716",
   terminalBrightBlack: "#434645",
 });
@@ -571,7 +535,8 @@ export const SPACING = {
 
 export const FONT_SIZE = {
   code: 12,
-  content: 15,
+  content: 14,
+  control: 13,
   sm: 12,
   base: 14,
   lg: 16,
@@ -583,6 +548,12 @@ export const FONT_SIZE = {
 
 export const LINE_HEIGHT = {
   diff: 22,
+  meta: 16,
+  control: 20,
+  body: 20,
+  reading: 24,
+  section: 24,
+  page: 28,
 } as const;
 
 export const ICON_SIZE = {
@@ -798,7 +769,7 @@ export const THEME_OPTIONS = [
     group: "primary",
     unistylesName: "dark",
     theme: darkTheme,
-    swatch: "#2D8B62",
+    swatch: "#a8b2ff",
   },
   { name: "auto", group: "primary" },
   {

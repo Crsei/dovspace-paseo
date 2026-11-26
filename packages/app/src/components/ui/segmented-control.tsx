@@ -234,7 +234,7 @@ const styles = StyleSheet.create((theme) => {
     },
     label: {
       color: theme.colors.foregroundMuted,
-      fontWeight: theme.fontWeight.normal,
+      fontWeight: theme.fontWeight.medium,
     },
     labelSm: {
       ...geometry.segmentedLabelSm,

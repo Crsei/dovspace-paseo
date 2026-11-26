@@ -203,6 +203,21 @@ Paseo's container:
   host provides it, so the bottom-left PM row opens the container instead of a browser
   tab. Older hosts without `openRoute` fall back to `baseUrl + "/pm"`.
 
+#### Visual contract
+
+Paseo's default `light` and `dark` themes mirror PM's palette and type roles. The container
+passes the host appearance into the frame through a same-origin adapter: on `pm:ready` and
+whenever Paseo's theme changes, the adapter sets the frame document's scheme and PM's CSS
+variables on `documentElement`. PM reads the variables it already uses for its own chrome,
+so this needs no PM repository change.
+
+The adapter does not write PM's preference store. PM keeps its own theme and accent choices
+for standalone use, and the embedded frame changes only for the life of the session. Theme
+variants are forwarded the same way. The iframe background follows the host surface from
+first paint, which avoids a white flash before PM mounts. This contract applies to the
+same-origin embed; on the host split, PM runs on its own origin and keeps its own theme.
+The plan and its verification record are in `docs/refactors/pm-style-alignment.md`.
+
 ## Verification
 
 ```bash

@@ -90,7 +90,7 @@ export interface AppSettings {
   uiFontFamily: string; // "" = platform default UI stack
   monoFontFamily: string; // "" = platform default mono stack
   uiBaseFontSize: number; // clamped px, platform default 14 or 15
-  contentFontSize: number; // clamped px, platform default 15 or 16
+  contentFontSize: number; // clamped px, platform default 14 or 16
   codeFontSize: number; // clamped px, default 12
   /** Numbers preserve widths saved before presets were introduced. */
   contentWidth: ContentWidth;

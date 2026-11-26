@@ -48,6 +48,7 @@
     "pm:clone": "node scripts/pm/clone.mjs",
     "pm:contract:sync": "node scripts/pm/sync-contract.mjs",
     "pm:contract:check": "node scripts/pm/sync-contract.mjs --check && node scripts/pm/sync-plugin-vendor.mjs --check",
+    "pm:theme-tokens": "node scripts/pm/sync-theme-tokens.mjs",
     "pm:probe": "tsx scripts/pm/probe.mts",
     "pm:pages:verify": "tsx scripts/pm/verify-pages.mts",
     "pm:stack:status": "pnpm --dir ../project-management-agent-v4 run services:status",

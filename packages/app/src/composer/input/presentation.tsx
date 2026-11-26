@@ -149,7 +149,7 @@ const styles = StyleSheet.create((theme) => ({
     height: TOOLBAR_CONTROL_HEIGHT,
     padding: 0,
     borderWidth: 0,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
   },
   enterButton: {
     position: "absolute",
@@ -158,7 +158,7 @@ const styles = StyleSheet.create((theme) => ({
     height: TOOLBAR_CONTROL_HEIGHT,
     padding: 0,
     borderWidth: 0,
-    borderRadius: theme.borderRadius.full,
+    borderRadius: theme.borderRadius.md,
   },
   fullscreen: {
     flex: 1,

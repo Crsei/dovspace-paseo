@@ -335,12 +335,9 @@ const userMessageStylesheet = StyleSheet.create((theme) => ({
   text: {
     color: theme.colors.foreground,
     fontSize: theme.fontSize.content,
-    ...(isWeb
-      ? {
-          lineHeight: Math.round(theme.fontSize.content * 1.4),
-          overflowWrap: "anywhere" as const,
-        }
-      : {}),
+    lineHeight: theme.lineHeight.reading,
+    fontWeight: theme.fontWeight.normal,
+    ...(isWeb ? { overflowWrap: "anywhere" as const } : {}),
   },
   imagePreviewContainer: {
     flexDirection: "row",
@@ -1301,7 +1298,8 @@ const speakMessageStylesheet = StyleSheet.create((theme) => ({
   text: {
     fontFamily: theme.fontFamily.ui,
     fontSize: theme.fontSize.content,
-    lineHeight: Math.round(theme.fontSize.content * 1.4),
+    lineHeight: theme.lineHeight.reading,
+    fontWeight: theme.fontWeight.normal,
     color: theme.colors.foreground,
   },
 }));

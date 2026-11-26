@@ -14,12 +14,14 @@ export function createMarkdownStyles(
   }: { compact?: boolean; muted?: boolean; blockGap: number },
 ): { markdownStyle: MarkdownStyle; selectionColor: string; containerStyle?: typeof WEB_CONTAINER } {
   const fontSize = compact ? theme.fontSize.base : theme.fontSize.content;
+  const lineHeight = compact ? theme.lineHeight.body : theme.lineHeight.reading;
   // Every block is followed by the same gap; the library drops it after the last block.
   const block = { marginTop: 0, marginBottom: blockGap };
   const paragraph = {
     fontSize,
     fontFamily: theme.fontFamily.ui,
-    lineHeight: Math.round(fontSize * 1.4),
+    lineHeight,
+    fontWeight: "normal" as const,
     color: muted ? theme.colors.foregroundMuted : theme.colors.foreground,
     ...block,
   };
@@ -81,6 +83,7 @@ export function createMarkdownStyles(
         ...paragraph,
         fontFamily: theme.fontFamily.mono === "ui-monospace" && !isWeb ? "" : theme.fontFamily.mono,
         fontSize: theme.fontSize.code,
+        lineHeight: theme.lineHeight.control,
         backgroundColor: theme.colors.surface2,
         borderColor: theme.colors.border,
         borderRadius: 8,

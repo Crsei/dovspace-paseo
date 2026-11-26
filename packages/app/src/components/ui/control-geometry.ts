@@ -58,7 +58,6 @@ const POINTER_HEADER_CONTROL_HEIGHT = 26;
 const SEGMENTED_INSET = 2;
 const CONTROL_FOCUS_RING_WIDTH = 2;
 const CONTROL_FOCUS_RING_OFFSET = 1;
-const FIELD_TEXT_LINE_HEIGHT_RATIO = 1.4;
 
 /**
  * The height of every button, field, and segmented control of a size. Exported so a row that
@@ -257,10 +256,6 @@ export function switchGeometryForLayout(size: ControlSize, isCompact: boolean): 
   return { ...track, hitHeight: controlHeightForLayout(size, isCompact) };
 }
 
-function fieldLineHeight(fontSize: number): number {
-  return Math.round(fontSize * FIELD_TEXT_LINE_HEIGHT_RATIO);
-}
-
 function fieldVerticalPadding(
   controlHeight: number,
   lineHeight: number,
@@ -377,8 +372,8 @@ export function resolveControlInteractionStyles(
 
 export function createControlGeometry(theme: Theme) {
   const controlBorderWidth = theme.borderWidth[1];
-  const fieldTextSmLineHeight = fieldLineHeight(theme.fontSize.sm);
-  const fieldTextMdLineHeight = fieldLineHeight(theme.fontSize.base);
+  const fieldTextSmLineHeight = theme.lineHeight.meta;
+  const fieldTextMdLineHeight = theme.lineHeight.control;
   const fieldControlSm = {
     minHeight: CONTROL_HEIGHTS.sm,
     paddingHorizontal: theme.spacing[2],
@@ -393,15 +388,17 @@ export function createControlGeometry(theme: Theme) {
     paddingVertical: mapLayout(CONTROL_HEIGHTS.md, (height) =>
       fieldVerticalPadding(height, fieldTextMdLineHeight, controlBorderWidth),
     ),
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
   };
   const fieldTextSm = {
     fontSize: theme.fontSize.sm,
     lineHeight: fieldTextSmLineHeight,
+    fontWeight: theme.fontWeight.medium,
   };
   const fieldTextMd = {
-    fontSize: theme.fontSize.base,
+    fontSize: theme.fontSize.control,
     lineHeight: fieldTextMdLineHeight,
+    fontWeight: theme.fontWeight.medium,
   };
   const alert = createAlertGeometry(theme);
 
@@ -409,21 +406,26 @@ export function createControlGeometry(theme: Theme) {
     buttonSm: {
       minHeight: CONTROL_HEIGHTS.sm,
       paddingHorizontal: theme.spacing[3],
-      borderRadius: theme.borderRadius.full,
+      borderRadius: theme.borderRadius.md,
+      minWidth: 56,
     },
     buttonMd: {
       minHeight: CONTROL_HEIGHTS.md,
-      paddingHorizontal: bySizing({ touch: theme.spacing[6], pointer: theme.spacing[4] }),
-      borderRadius: theme.borderRadius.full,
+      // PM's `px-3`: a wide-enough pointer label reads 12 inside its 32pt frame.
+      paddingHorizontal: bySizing({ touch: theme.spacing[6], pointer: theme.spacing[3] }),
+      borderRadius: theme.borderRadius.md,
+      minWidth: 64,
     },
-    // A button with only an icon is a circle of its size's height.
-    buttonIconOnlySm: { width: CONTROL_HEIGHTS.sm, paddingHorizontal: 0 },
-    buttonIconOnlyMd: { width: CONTROL_HEIGHTS.md, paddingHorizontal: 0 },
+    // A button with only an icon is a square of its size's height, never a labelled minimum.
+    buttonIconOnlySm: { width: CONTROL_HEIGHTS.sm, minWidth: 0, paddingHorizontal: 0 },
+    buttonIconOnlyMd: { width: CONTROL_HEIGHTS.md, minWidth: 0, paddingHorizontal: 0 },
     buttonTextSm: {
       fontSize: theme.fontSize.sm,
+      lineHeight: theme.lineHeight.meta,
     },
     buttonTextMd: {
-      fontSize: theme.fontSize.base,
+      fontSize: theme.fontSize.control,
+      lineHeight: theme.lineHeight.control,
     },
     alert,
     formTextInputSm: {
@@ -458,7 +460,8 @@ export function createControlGeometry(theme: Theme) {
       outlineColor: theme.colors.accent,
     },
     controlDisabled: {
-      opacity: theme.opacity[50],
+      // PM's disabled control opacity.
+      opacity: 0.45,
     },
     segmentedContainerSm: {
       minHeight: CONTROL_HEIGHTS.sm,
@@ -471,18 +474,20 @@ export function createControlGeometry(theme: Theme) {
     segmentedSegmentSm: {
       minHeight: mapLayout(CONTROL_HEIGHTS.sm, (height) => height - SEGMENTED_INSET * 2),
       paddingHorizontal: theme.spacing[2],
-      borderRadius: theme.borderRadius.full,
+      borderRadius: theme.borderRadius.md,
     },
     segmentedSegmentMd: {
       minHeight: mapLayout(CONTROL_HEIGHTS.md, (height) => height - SEGMENTED_INSET * 2),
-      paddingHorizontal: theme.spacing[3],
-      borderRadius: theme.borderRadius.full,
+      paddingHorizontal: theme.spacing[2],
+      borderRadius: theme.borderRadius.md,
     },
     segmentedLabelSm: {
       fontSize: theme.fontSize.sm,
+      lineHeight: theme.lineHeight.meta,
     },
     segmentedLabelMd: {
-      fontSize: theme.fontSize.base,
+      fontSize: theme.fontSize.control,
+      lineHeight: theme.lineHeight.control,
     },
   };
 }

@@ -4,9 +4,11 @@ import { ChevronDown, ChevronRight } from "lucide-react-native";
 import { Text, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { DensityIcon } from "@/components/ui/density-icon";
+import { bySizing, TOUCH_TARGET } from "@/components/ui/control-geometry";
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { isNative } from "@/constants/platform";
-import { density } from "@/styles/density";
+
+const SECTION_HEADER_MIN_HEIGHT = bySizing({ touch: TOUCH_TARGET, pointer: 30 });
 
 /** A sidebar section label such as "Pinned" or "Workspaces". A section with `onToggle`
  * collapses from its title; children sit at the trailing edge as its actions. */
@@ -82,7 +84,7 @@ function CollapsibleTitle({
 
 const styles = StyleSheet.create((theme) => ({
   header: {
-    minHeight: density.rowHeight,
+    minHeight: SECTION_HEADER_MIN_HEIGHT,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
@@ -106,7 +108,8 @@ const styles = StyleSheet.create((theme) => ({
   title: {
     color: theme.colors.foregroundMuted,
     fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.normal,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
   },
   actions: {
     flexDirection: "row",

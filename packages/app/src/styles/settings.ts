@@ -14,8 +14,9 @@ export const settingsStyles = StyleSheet.create((theme) => ({
   },
   sectionHeaderTitle: {
     color: theme.colors.foregroundMuted,
-    fontSize: theme.fontSize.sm,
-    fontWeight: theme.fontWeight.normal,
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
   },
   sectionHeaderLink: {
     alignItems: "center",
@@ -23,8 +24,8 @@ export const settingsStyles = StyleSheet.create((theme) => ({
     gap: theme.spacing[1],
   },
   card: {
-    backgroundColor: theme.colors.surface1,
-    borderRadius: theme.borderRadius.lg,
+    backgroundColor: theme.colors.surface0,
+    borderRadius: theme.borderRadius.xl,
     borderWidth: 1,
     borderColor: theme.colors.border,
     overflow: "hidden",
@@ -49,15 +50,21 @@ export const settingsStyles = StyleSheet.create((theme) => ({
   rowTitle: {
     color: theme.colors.foreground,
     fontSize: theme.fontSize.base,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.body,
   },
   rowHint: {
     color: theme.colors.foregroundMuted,
     fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     marginTop: theme.spacing[1],
   },
   rowError: {
     color: theme.colors.statusDanger,
     fontSize: theme.fontSize.sm,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.meta,
     marginTop: theme.spacing[1],
   },
 }));

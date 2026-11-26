@@ -23,6 +23,7 @@ import type { HostBadgeModel } from "@/hosts/appearance";
 import { isWeb as platformIsWeb, isNative as platformIsNative } from "@/constants/platform";
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { StyleSheet } from "react-native-unistyles";
+import { bySizing, TOUCH_TARGET } from "@/components/ui/control-geometry";
 import { density, densityIconBox, densityIconProps } from "@/styles/density";
 import type { SidebarSurfaceBackdrop } from "@/styles/surface-backdrop";
 import { withUnistyles } from "react-native-unistyles";
@@ -1068,6 +1069,8 @@ function getStatusWorkspaceRowStyle({
   ];
 }
 
+const STATUS_ROW_MIN_HEIGHT = bySizing({ touch: TOUCH_TARGET, pointer: 30 });
+
 const styles = StyleSheet.create((theme) => ({
   container: {
     flex: 1,
@@ -1091,10 +1094,10 @@ const styles = StyleSheet.create((theme) => ({
   },
   statusWorkspaceListContainer: {},
   statusGroupRow: {
-    minHeight: density.rowHeight,
-    paddingVertical: theme.spacing[2],
+    minHeight: STATUS_ROW_MIN_HEIGHT,
+    paddingVertical: theme.spacing[0.5],
     paddingHorizontal: theme.spacing[2],
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     marginBottom: theme.spacing[2],
     flexDirection: "row",
     alignItems: "center",
@@ -1132,8 +1135,9 @@ const styles = StyleSheet.create((theme) => ({
   },
   statusGroupTitle: {
     color: theme.colors.foregroundMuted,
-    fontSize: theme.fontSize.base,
-    fontWeight: "400",
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
     minWidth: 0,
     flexShrink: 1,
   },
@@ -1146,7 +1150,7 @@ const styles = StyleSheet.create((theme) => ({
     paddingVertical: theme.spacing[2],
     paddingLeft: theme.spacing[2],
     paddingRight: theme.spacing[3],
-    borderRadius: theme.borderRadius.lg,
+    borderRadius: theme.borderRadius.md,
     flexDirection: "column",
     alignItems: "stretch",
     justifyContent: "flex-start",

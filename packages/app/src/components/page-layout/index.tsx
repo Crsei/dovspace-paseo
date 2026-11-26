@@ -7,6 +7,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { StyleSheet, withUnistyles } from "react-native-unistyles";
 import { BackHeader } from "@/components/headers/back-header";
 import { MenuHeader } from "@/components/headers/menu-header";
+import { PageTitle as PageTitleText } from "@/components/headers/page-title";
 import { PressHighlight } from "@/components/ui/press-highlight";
 import { useIsCompactFormFactor } from "@/constants/layout";
 import { ICON_SIZE, SPACING, type Theme } from "@/styles/theme";
@@ -114,9 +115,7 @@ export function PageTitle({
             testID={parent.testID}
           >
             {({ hovered }: PressableStateCallbackType & { hovered?: boolean }) => (
-              <Text style={[styles.title, styles.parent, hovered && styles.parentHovered]}>
-                {parent.label}
-              </Text>
+              <Text style={[styles.parent, hovered && styles.parentHovered]}>{parent.label}</Text>
             )}
           </PressHighlight>
         ) : null}
@@ -125,9 +124,9 @@ export function PageTitle({
         ) : null}
         {icon}
         {title !== undefined ? (
-          <Text style={[styles.title, styles.titleLeaf]} numberOfLines={1} testID={titleTestID}>
+          <PageTitleText style={styles.titleLeaf} numberOfLines={1} testID={titleTestID}>
             {title}
-          </Text>
+          </PageTitleText>
         ) : null}
         {adornment}
       </View>
@@ -177,15 +176,14 @@ const styles = StyleSheet.create((theme) => ({
     flexShrink: 1,
     minWidth: 0,
   },
-  title: {
-    fontSize: theme.fontSize["4xl"],
-    fontWeight: theme.fontWeight.medium,
-    color: theme.colors.foreground,
-  },
   titleLeaf: {
     flexShrink: 1,
   },
   parent: {
+    flexShrink: 0,
+    fontSize: theme.fontSize.control,
+    lineHeight: theme.lineHeight.control,
+    fontWeight: theme.fontWeight.medium,
     color: theme.colors.foregroundMuted,
   },
   parentHovered: {

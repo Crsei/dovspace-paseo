@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, ExternalLink, FolderKanban, RotateCw } from "lucide-react-native";
 import { useTranslation } from "react-i18next";
@@ -7,11 +7,18 @@ import { StyleSheet, withUnistyles } from "react-native-unistyles";
 import { z } from "zod";
 import { Button } from "@/components/ui/button";
 import { ToolbarButton } from "@/components/ui/pane-content-toolbar";
+import type { Theme } from "@/styles/theme";
 import { openExternalUrl } from "@/utils/open-external-url";
 
 const DEFAULT_PM_PATH = "/pm/";
 const LOAD_TIMEOUT_MS = 20_000;
-const frameStyle = { flex: 1, minHeight: 0, border: "none", backgroundColor: "white" } as const;
+// Transparent so the themed host surface behind it shows through before PM paints.
+const frameStyle = {
+  flex: 1,
+  minHeight: 0,
+  border: "none",
+  backgroundColor: "transparent",
+} as const;
 
 const ThemedArrowLeft = withUnistyles(ArrowLeft, (theme) => ({
   color: theme.colors.foregroundMuted,
@@ -24,6 +31,117 @@ const ThemedExternalLink = withUnistyles(ExternalLink, (theme) => ({
 }));
 const ThemedFolderKanban = withUnistyles(FolderKanban, (theme) => ({
   color: theme.colors.foregroundMuted,
+}));
+
+/**
+ * PM's semantic variables, expressed through Paseo's theme. PM reads these from
+ * `documentElement` while embedded, so its pages follow the host scheme and accent.
+ */
+function pmThemeVars(theme: Theme): Record<string, string> {
+  return {
+    "--background": theme.colors.surfaceSidebar,
+    "--surface": theme.colors.surface0,
+    "--surface-raised": theme.colors.surface1,
+    "--card": theme.colors.surface0,
+    "--card-foreground": theme.colors.foreground,
+    "--secondary": theme.colors.surface1,
+    "--secondary-foreground": theme.colors.foreground,
+    "--muted": theme.colors.surface1,
+    "--popover": theme.colors.surface0,
+    "--popover-foreground": theme.colors.foreground,
+    "--surface-hover": theme.colors.surface2,
+    "--surface-pressed": theme.colors.surface3,
+    "--foreground": theme.colors.foreground,
+    "--text-secondary": theme.colors.foregroundMuted,
+    "--text-muted": theme.colors.foregroundExtraMuted,
+    "--muted-foreground": theme.colors.foregroundMuted,
+    "--border": theme.colors.border,
+    "--border-hover": theme.colors.borderAccent,
+    "--accent": theme.colors.accent,
+    "--primary": theme.colors.accent,
+    "--primary-foreground": theme.colors.accentForeground ?? theme.colors.surface0,
+    "--accent-foreground": theme.colors.accentForeground ?? theme.colors.surface0,
+    "--brand": theme.colors.accent,
+    "--brand-foreground": theme.colors.accentForeground ?? theme.colors.surface0,
+    "--ring": theme.colors.accent,
+    "--focus": theme.colors.accent,
+    "--success": theme.colors.statusSuccess,
+    "--warning": theme.colors.statusWarning,
+    "--destructive": theme.colors.statusDanger,
+    "--agent": theme.colors.statusMerged,
+    "--font-sans": theme.fontFamily.ui,
+    "--font-mono": theme.fontFamily.mono,
+    "--control-radius": "6px",
+    "--radius-module-value": "12px",
+    "--radius-panel-value": "16px",
+    "--radius-popover-value": "8px",
+    "--pill-radius": "999px",
+  };
+}
+
+/**
+ * Writes the host theme into the same-origin PM frame. Rendering it only after
+ * `pm:ready` or a frame load puts the write after PM's own preference effect, so
+ * the host wins without touching PM's stored display preferences.
+ */
+function PmThemeSync({
+  frameRef,
+  scheme,
+  vars,
+  syncToken,
+}: {
+  frameRef: { current: HTMLIFrameElement | null };
+  scheme: "light" | "dark";
+  vars: Record<string, string>;
+  syncToken: number;
+}) {
+  useLayoutEffect(() => {
+    let frame = 0;
+    let observer: MutationObserver | null = null;
+    const apply = () => {
+      try {
+        const documentElement = frameRef.current?.contentDocument?.documentElement;
+        if (!documentElement) return;
+        const wantDark = scheme === "dark";
+        if (documentElement.classList.contains("dark") !== wantDark) {
+          documentElement.classList.toggle("dark", wantDark);
+        }
+        if (documentElement.style.colorScheme !== scheme) {
+          documentElement.style.colorScheme = scheme;
+        }
+        for (const [name, value] of Object.entries(vars)) {
+          if (documentElement.style.getPropertyValue(name) !== value) {
+            documentElement.style.setProperty(name, value);
+          }
+        }
+        if (!observer) {
+          // PM's preference layer can toggle the scheme or data attributes after ready.
+          // Reapply the host values without writing them again when they already match.
+          observer = new MutationObserver(() => {
+            cancelAnimationFrame(frame);
+            frame = requestAnimationFrame(apply);
+          });
+          observer.observe(documentElement, {
+            attributes: true,
+            attributeFilter: ["class", "data-pm-font", "data-pm-accent"],
+          });
+        }
+      } catch {
+        // A cross-origin or detached frame is not ours to theme; the host still renders.
+      }
+    };
+    apply();
+    return () => {
+      cancelAnimationFrame(frame);
+      observer?.disconnect();
+    };
+  }, [frameRef, scheme, vars, syncToken]);
+  return null;
+}
+
+const ThemedPmThemeSync = withUnistyles(PmThemeSync, (theme) => ({
+  scheme: theme.colorScheme,
+  vars: pmThemeVars(theme),
 }));
 
 type PmEmbedMessage =
@@ -97,12 +215,16 @@ export function PmContainer() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [workspaceLost, setWorkspaceLost] = useState(false);
+  // Increments on every load and every `pm:ready`, so the sync runs again after
+  // PM has had its say and on every theme change while ready.
+  const [frameReady, setFrameReady] = useState(0);
   const ready = useRef(false);
   const frame = useRef<HTMLIFrameElement | null>(null);
   const currentPath = useRef(src);
 
   const retry = useCallback(() => {
     ready.current = false;
+    setFrameReady(0);
     setError(null);
     setLoading(true);
     setWorkspaceLost(false);
@@ -131,6 +253,7 @@ export function PmContainer() {
       switch (message.type) {
         case "pm:ready":
           ready.current = true;
+          setFrameReady((value) => value + 1);
           setLoading(false);
           setError(null);
           return;
@@ -173,6 +296,7 @@ export function PmContainer() {
   }, []);
   const onFrameLoad = useCallback(() => {
     ready.current = true;
+    setFrameReady((value) => value + 1);
     setLoading(false);
   }, []);
 
@@ -228,6 +352,7 @@ export function PmContainer() {
           onLoad={onFrameLoad}
         />
         {/* eslint-enable eslint-plugin-react/iframe-missing-sandbox */}
+        {frameReady > 0 && <ThemedPmThemeSync frameRef={frame} syncToken={frameReady} />}
         {loading && (
           <View style={styles.loading} pointerEvents="none">
             <Text style={styles.loadingText}>
@@ -246,15 +371,20 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing[1],
-    minHeight: 44,
+    minHeight: 48,
     paddingHorizontal: theme.spacing[2],
     borderBottomWidth: 1,
     borderBottomColor: theme.colors.border,
     backgroundColor: theme.colors.surface0,
   },
   title: { flex: 1, flexDirection: "row", alignItems: "center", gap: theme.spacing[2] },
-  titleText: { color: theme.colors.foreground, fontSize: theme.fontSize.sm, fontWeight: "600" },
-  frameHost: { flex: 1, position: "relative" },
+  titleText: {
+    color: theme.colors.foreground,
+    fontSize: theme.fontSize.control,
+    lineHeight: theme.lineHeight.control,
+    fontWeight: theme.fontWeight.medium,
+  },
+  frameHost: { flex: 1, position: "relative", backgroundColor: theme.colors.surface0 },
   loading: {
     position: "absolute",
     top: 0,

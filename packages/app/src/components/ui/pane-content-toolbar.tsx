@@ -61,8 +61,6 @@ interface ToolbarButtonCommonProps extends Omit<
   tooltip?: ReactNode;
   selected?: boolean;
   compact?: boolean;
-  /** A circular highlight, for buttons inside a pill-shaped container. */
-  round?: boolean;
   shortcut?: ShortcutKey[][] | null;
   tooltipSide?: "left" | "right" | "top" | "bottom";
   style?: StyleProp<ViewStyle>;
@@ -84,7 +82,6 @@ export function ToolbarButton({
   tooltip: tooltipBody,
   selected = false,
   compact = false,
-  round = false,
   shortcut,
   tooltipSide = "bottom",
   style,
@@ -99,8 +96,7 @@ export function ToolbarButton({
     compact,
     active: selected,
     disabled: Boolean(disabled),
-    round,
-    style,
+    style: [style, styles.controlRadius],
   });
   const accessibilityState = useMemo(
     () => ({ disabled: Boolean(disabled), selected }),
@@ -201,6 +197,11 @@ export function paneContentToolbarIconButtonStyle(
 }
 
 const styles = StyleSheet.create((theme) => ({
+  // Toolbar and sheet-header icon actions are controls, not pills. Applied after the
+  // chrome's optional round style so a header-island container cannot turn them into circles.
+  controlRadius: {
+    borderRadius: theme.borderRadius.md,
+  },
   toolbar: {
     height: WORKSPACE_SECONDARY_HEADER_HEIGHT,
     backgroundColor: theme.colors.surface0,

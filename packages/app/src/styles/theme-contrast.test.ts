@@ -95,6 +95,9 @@ const TERTIARY_TEXT_FLOOR = 2.5;
 // The bright hues are dim on a cream or white background by design; the floor only has to catch a
 // color that disappears.
 const TERMINAL_COLOR_FLOOR = 1.5;
+// Status icons and their labels carry state at small sizes, so they hold WCAG's 3:1 non-text
+// minimum against the page surface.
+const STATUS_SIGNAL_FLOOR = 3;
 
 it("keeps Solarized Dark's selected workspace timestamp readable", () => {
   const { colors } = buildPluginTheme(SOLARIZED_DARK);
@@ -208,12 +211,41 @@ describe("a plugin theme with body text between 3:1 and 3.8:1", () => {
 });
 
 describe("built-in themes", () => {
+  // A control's hover fill must separate from the workspace surface underneath. PM's light
+  // surfaces are the tightest pair at 1.10; the floor keeps a rounding margin.
+  const CONTROL_HOVER_FLOOR = 1.09;
+
   it.each(themes.filter(({ name }) => !name.startsWith("plugin ")))(
     "$name keeps a control hover visible on the workspace surface",
     ({ theme }) => {
       expect(
         contrastRatio(theme.colors.surfaceWorkspace, theme.colors.surface2),
-      ).toBeGreaterThanOrEqual(1.09);
+      ).toBeGreaterThanOrEqual(CONTROL_HOVER_FLOOR);
+    },
+  );
+
+  it.each(themes.filter(({ name }) => !name.startsWith("plugin ")))(
+    "$name keeps PM's status signals legible on the page",
+    ({ theme }) => {
+      for (const key of [
+        "statusSuccess",
+        "statusDanger",
+        "statusWarning",
+        "statusMerged",
+      ] as const) {
+        expect(contrastRatio(theme.colors.surface0, theme.colors[key]), key).toBeGreaterThanOrEqual(
+          STATUS_SIGNAL_FLOOR,
+        );
+      }
+    },
+  );
+
+  it.each(themes.filter(({ name }) => !name.startsWith("plugin ")))(
+    "$name keeps destructive button text readable",
+    ({ theme }) => {
+      expect(
+        contrastRatio(theme.colors.destructive, theme.colors.destructiveForeground),
+      ).toBeGreaterThanOrEqual(STATUS_SIGNAL_FLOOR);
     },
   );
 });

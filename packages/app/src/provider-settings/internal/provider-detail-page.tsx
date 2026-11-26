@@ -59,5 +59,5 @@ export function ProviderDetailPage({
 
 // The glyph is as large as the name beside it. The page title scales with the interface size.
 const ThemedProviderGlyph = withUnistyles(ProviderGlyph);
-const pageTitleSize = (theme: Theme) => ({ size: theme.fontSize["4xl"] });
+const pageTitleSize = (theme: Theme) => ({ size: theme.fontSize["2xl"] });
 const rowTitleSize = () => ({ size: ICON_SIZE.md });

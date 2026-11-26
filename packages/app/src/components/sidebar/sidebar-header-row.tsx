@@ -4,11 +4,14 @@ import { Text, View } from "react-native";
 import { StyleSheet } from "react-native-unistyles";
 import { HEADER_INNER_HEIGHT, HEADER_INNER_HEIGHT_MOBILE } from "@/constants/layout";
 import { DensityIcon } from "@/components/ui/density-icon";
+import { bySizing, TOUCH_TARGET } from "@/components/ui/control-geometry";
 import { Shortcut } from "@/components/ui/shortcut";
-import { density, densityIconBox } from "@/styles/density";
+import { densityIconBox } from "@/styles/density";
 import type { ShortcutKey } from "@/utils/format-shortcut";
 
 type SidebarHeaderRowVariant = "header" | "compact" | "inline";
+
+const NAV_ROW_MIN_HEIGHT = bySizing({ touch: TOUCH_TARGET, pointer: 30 });
 
 export type SidebarRowIcon = ComponentType<{ size: number; color: string }>;
 
@@ -144,8 +147,8 @@ const styles = StyleSheet.create((theme) => ({
     alignItems: "center",
     // Same row geometry as the settings sidebar items. Shorter than the header
     // strip so the hover highlight clears the strip's bottom separator.
-    minHeight: density.tightRowHeight,
-    borderRadius: theme.borderRadius.lg,
+    minHeight: NAV_ROW_MIN_HEIGHT,
+    borderRadius: theme.borderRadius.md,
   },
   rowHighlighted: {
     backgroundColor: theme.colors.surfaceSidebarHover,
@@ -160,7 +163,7 @@ const styles = StyleSheet.create((theme) => ({
     flexDirection: "row",
     alignItems: "center",
     gap: theme.spacing[2],
-    minHeight: density.tightRowHeight,
+    minHeight: NAV_ROW_MIN_HEIGHT,
     paddingVertical: theme.spacing[1],
     // Match the project rows' inner padding so the icons align on one vertical
     // edge with the list below.
@@ -170,8 +173,9 @@ const styles = StyleSheet.create((theme) => ({
   iconSpacerCompact: { width: densityIconBox("sm"), height: densityIconBox("sm") },
   label: {
     flexShrink: 1,
-    fontSize: theme.fontSize.base,
-    fontWeight: theme.fontWeight.normal,
+    fontSize: theme.fontSize.control,
+    fontWeight: theme.fontWeight.medium,
+    lineHeight: theme.lineHeight.control,
     color: theme.colors.foregroundMuted,
   },
   labelHighlighted: {
