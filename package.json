@@ -33,7 +33,8 @@
     "packages/relay",
     "packages/website",
     "packages/desktop",
-    "packages/cli"
+    "packages/cli",
+    "packages/pm-integration"
   ],
   "scripts": {
     "dev": "npm run dev:server",
@@ -44,6 +45,14 @@
     "dev:app": "cross-env PASEO_LISTEN=127.0.0.1:6768 EXPO_PORT=8081 ./scripts/dev-app.sh",
     "dev:android": "npm run dev:android --workspace=@getpaseo/app",
     "dev:ios": "npm run dev:ios --workspace=@getpaseo/app",
+    "pm:clone": "node scripts/pm/clone.mjs",
+    "pm:contract:sync": "node scripts/pm/sync-contract.mjs",
+    "pm:contract:check": "node scripts/pm/sync-contract.mjs --check && node scripts/pm/sync-plugin-vendor.mjs --check",
+    "pm:probe": "tsx scripts/pm/probe.mts",
+    "pm:pages:verify": "tsx scripts/pm/verify-pages.mts",
+    "pm:stack:status": "pnpm --dir ../project-management-agent-v4 run services:status",
+    "pm:stack:start": "pnpm --dir ../project-management-agent-v4 run services:start",
+    "pm:stack:stop": "pnpm --dir ../project-management-agent-v4 run services:stop",
     "test:e2e:mobile": "./scripts/test-mobile-agent-device.sh",
     "test:e2e:composer-keyboard:android": "./packages/app/e2e/mobile/composer-keyboard/android.sh",
     "dev:website": "npm run dev --workspace=@getpaseo/website",
@@ -126,7 +135,9 @@
     "release:push": "node scripts/push-current-release-tag.mjs",
     "release:ship": "node scripts/push-current-release-tag.mjs --check && npm run release:publish && npm run release:push",
     "release:ship:beta": "node scripts/push-current-release-tag.mjs --check && npm run release:publish:beta && npm run release:push",
-    "release:reconcile": "node scripts/reconcile-release.mjs"
+    "release:reconcile": "node scripts/reconcile-release.mjs",
+    "pm:plugin:check": "tsx scripts/pm/check-plugin-compile.mts",
+    "pm:plugin:rpc": "tsx scripts/pm/check-plugin-rpc.mts"
   },
   "devDependencies": {
     "@types/ws": "^8.5.14",
@@ -147,6 +158,7 @@
     "patch-package": "^8.0.1",
     "playwright": "^1.56.1",
     "react-dom": "19.2.3",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "ws": "^8.20.0"
   },

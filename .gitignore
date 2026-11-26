@@ -1,6 +1,9 @@
 # Dependencies
 node_modules/
 
+# Development Plans
+plan/
+
 # Build outputs
 build/
 dist/

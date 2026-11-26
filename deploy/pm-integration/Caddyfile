@@ -1,0 +1,86 @@
+# Unified local edge for Paseo + PM (Caddy v2).
+#
+#   caddy run --config deploy/pm-integration/Caddyfile --adapter caddyfile
+#
+# Plain HTTP on :7000 by default. Environment values fall back to the
+# localhost defaults in .env.example. TLS is optional: see the commented
+# `tls` line and the README section (EDGE_HOSTS / EDGE_TLS).
+
+:{$EDGE_PORT:7000} {
+	# --- Named matchers -------------------------------------------------
+
+	# Edge liveness only; this never touches an upstream.
+	@health {
+		path /healthz
+		method GET HEAD
+	}
+
+	# 1. Exact internal path (the requirement asks for a distinct guard).
+	@pm_internal_exact {
+		host {$PM_HOST:pm.localhost}
+		path /api/v1/internal
+	}
+
+	# 2. Internal prefix, before any proxy handler runs.
+	@pm_internal_prefix {
+		host {$PM_HOST:pm.localhost}
+		path /api/v1/internal/*
+	}
+
+	# 3. Normalized/percent-encoded variants. path_regexp runs against the
+	#    URI-decoded path, so `%2f`, `%2F`, `%69` etc. are already unescaped.
+	#    This also catches repeated separators, backslashes, dot segments and
+	#    double-encoded separators that survive one decode (%252f -> %2f).
+	@pm_internal_normalized {
+		host {$PM_HOST:pm.localhost}
+		path_regexp `(?i)^/+api/+v1(?:/+|\\+|%2f|%5c|\.{1,2}/|(?:%2e){1,2}/)+internal(?:[/\\%]|$)`
+	}
+
+	# 4. Any dot-segment: prevents /api/v1/x/../internal style normalization.
+	@pm_dot_segments {
+		host {$PM_HOST:pm.localhost}
+		path_regexp `(?i)(?:^|/)(?:\.{1,2}|(?:%2e){1,2})(?:/|$)`
+	}
+
+	@paseo host {$PASEO_HOST:paseo.localhost}
+	@pm host {$PM_HOST:pm.localhost}
+
+	# --- Request handling ----------------------------------------------
+
+	# route keeps these in literal order: guards always run before proxies.
+	route {
+		respond @health "ok" 200
+
+		# Internal PM API is never public. Empty 404 keeps it indistinguishable
+		# from an unknown route.
+		respond @pm_internal_exact 404
+		respond @pm_internal_prefix 404
+		respond @pm_internal_normalized 404
+		respond @pm_dot_segments 404
+
+		# Paseo daemon. Caddy passes the original Host header through, which
+		# Paseo's host-based service routing requires. WebSocket upgrades are
+		# automatic. No transport read/write timeout is configured: Caddy's
+		# HTTP transport defaults to no timeout (only dial_timeout 3s), so
+		# long-lived WebSocket tunnels are not cut.
+		reverse_proxy @paseo {$PASEO_UPSTREAM:127.0.0.1:6768}
+
+		# PM gateway. It owns /api, /agent/api/*, /mcp, /oauth/* and
+		# /.well-known/* and routes agent traffic internally; the edge never
+		# proxies those paths to the PM agent port directly.
+		# Host, Origin, Cookie, Last-Event-ID and Authorization are forwarded
+		# unchanged (Caddy default); Origin is deliberately not rewritten.
+		reverse_proxy @pm {$PM_UPSTREAM:127.0.0.1:3224} {
+			# No response buffering: SSE events are flushed immediately.
+			flush_interval -1
+		}
+
+		respond "not found" 404
+	}
+
+	# Optional TLS: uncomment `tls`, replace the site address above with the
+	# public names from EDGE_HOSTS (space- or comma-separated) and set
+	# PM_HOST/PASEO_HOST to those same names. EDGE_TLS=internal uses Caddy's
+	# local CA; otherwise set it to an ACME e-mail address.
+	# tls {$EDGE_TLS:internal}
+}

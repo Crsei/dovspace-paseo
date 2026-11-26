@@ -8,6 +8,7 @@ export const builtinPlugins = [
   "codex-usage-source",
   "copilot-usage-source",
   "cursor-usage-source",
+  "dovspace-pm",
   "fx-provider",
   "goose-provider",
   "grok-usage-source",

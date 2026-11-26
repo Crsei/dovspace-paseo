@@ -1,0 +1,544 @@
+// Dependency-free HTTP transport for the Project Management public API.
+// Paseo's plugin runtime vendors this file verbatim, so it must not import
+// anything outside this module.
+//
+// Contract rules this implements:
+// - A session is either an opaque bearer token or the `pm_v4_session` cookie.
+// - `Authorization` takes precedence over the cookie.
+// - Writes are never retried automatically: an unknown outcome must be
+//   reconciled through the original command receipt.
+
+export type PmErrorKind =
+  | "unauthenticated"
+  | "forbidden"
+  | "not_found"
+  | "conflict"
+  | "invalid"
+  | "throttled"
+  | "unavailable"
+  | "server"
+  | "network"
+  | "timeout"
+  | "aborted"
+  | "unknown";
+
+const SAFE_METHODS: Record<string, true> = { GET: true, HEAD: true, OPTIONS: true };
+
+export interface PmHttpErrorOptions {
+  requestId?: string;
+  details?: unknown;
+  retryable?: boolean;
+  outcomeUnknown?: boolean;
+  cause?: unknown;
+}
+
+export class PmHttpError extends Error {
+  readonly status: number | null;
+  readonly code: string;
+  readonly kind: PmErrorKind;
+  readonly requestId: string | undefined;
+  readonly details: unknown;
+  readonly retryable: boolean;
+  readonly outcomeUnknown: boolean;
+
+  constructor(
+    status: number | null,
+    code: string,
+    message: string,
+    kind: PmErrorKind,
+    options: PmHttpErrorOptions = {},
+  ) {
+    super(message, options.cause === undefined ? undefined : { cause: options.cause });
+    this.name = "PmHttpError";
+    this.status = status;
+    this.code = code;
+    this.kind = kind;
+    this.requestId = options.requestId;
+    this.details = options.details;
+    this.retryable =
+      options.retryable ??
+      (kind === "network" || kind === "timeout" || kind === "throttled" || kind === "unavailable");
+    this.outcomeUnknown = options.outcomeUnknown ?? false;
+  }
+}
+
+export type PmQueryValue = string | number | boolean | null | undefined;
+export type PmQuery = Record<string, PmQueryValue | readonly PmQueryValue[]>;
+
+export interface PmTransportOptions {
+  /** Public PM origin, optionally with a path prefix. */
+  baseUrl: string;
+  fetch?: typeof globalThis.fetch;
+  /** Opaque PM session token. Prefer this over a cookie outside browsers. */
+  token?: string | (() => string | undefined);
+  /** Raw Cookie header, for example `pm_v4_session=...`. Browsers must use credentials instead. */
+  cookie?: string | (() => string | undefined);
+  /** Sent as `Origin` when PM enforces it. */
+  origin?: string;
+  credentials?: RequestCredentials;
+  headers?: Record<string, string>;
+  timeoutMs?: number;
+}
+
+export interface PmSendOptions {
+  method: string;
+  path: string;
+  query?: PmQuery;
+  body?: unknown;
+  headers?: Record<string, string>;
+  signal?: AbortSignal;
+  /** 0 disables the deadline (SSE). */
+  timeoutMs?: number;
+}
+
+export interface PmSseOptions {
+  query?: PmQuery;
+  headers?: Record<string, string>;
+  lastEventId?: string;
+  signal?: AbortSignal;
+  reconnect?: boolean;
+  initialDelayMs?: number;
+  maxDelayMs?: number;
+}
+
+export interface PmSseEvent {
+  id?: string;
+  event?: string;
+  data: string;
+  retry?: number;
+}
+
+export interface PmDownload {
+  body: ReadableStream<Uint8Array> | null;
+  filename: string | undefined;
+  contentType: string;
+  size: number | undefined;
+  status: number;
+}
+
+function normalizeBaseUrl(value: string): string {
+  const url = new URL(value);
+  if (url.protocol !== "http:" && url.protocol !== "https:")
+    throw new Error("PM baseUrl must be http or https");
+  if (url.username || url.password || url.search || url.hash)
+    throw new Error("PM baseUrl must not contain credentials, query, or fragment");
+  return url.href.replace(/\/$/, "");
+}
+
+function errorKind(status: number): PmErrorKind {
+  if (status === 401) return "unauthenticated";
+  if (status === 403) return "forbidden";
+  if (status === 404) return "not_found";
+  if (status === 409) return "conflict";
+  if (status === 400 || status === 422) return "invalid";
+  if (status === 429) return "throttled";
+  if (status === 502 || status === 503 || status === 504) return "unavailable";
+  if (status >= 500) return "server";
+  return "unknown";
+}
+
+function errorEnvelope(value: unknown): {
+  code?: string;
+  message?: string;
+  details?: unknown;
+  requestId?: string;
+} {
+  if (!value || typeof value !== "object") return {};
+  const record = value as Record<string, unknown>;
+  const error = record.error;
+  if (!error || typeof error !== "object")
+    return { requestId: typeof record.requestId === "string" ? record.requestId : undefined };
+  const shaped = error as Record<string, unknown>;
+  return {
+    code: typeof shaped.code === "string" ? shaped.code : undefined,
+    message: typeof shaped.message === "string" ? shaped.message : undefined,
+    details: shaped.details,
+    requestId: typeof record.requestId === "string" ? record.requestId : undefined,
+  };
+}
+
+function parseContentDisposition(value: string | null): string | undefined {
+  if (!value) return undefined;
+  const encoded = /filename\*\s*=\s*([^']*)'[^']*'([^;]+)/i.exec(value);
+  if (encoded?.[2]) {
+    try {
+      return decodeURIComponent(encoded[2].trim().replace(/^"|"$/g, ""));
+    } catch {
+      return undefined;
+    }
+  }
+  const plain = /filename\s*=\s*("([^"]*)"|[^;]+)/i.exec(value);
+  return plain ? (plain[2] ?? plain[1] ?? "").trim() : undefined;
+}
+
+function isJsonContentType(value: string): boolean {
+  return /\bapplication\/(?:[^;]+\+)?json\b/i.test(value);
+}
+
+function isBinaryBody(value: unknown): value is BodyInit {
+  return (
+    typeof value === "string" ||
+    value instanceof Uint8Array ||
+    value instanceof ArrayBuffer ||
+    (typeof Blob !== "undefined" && value instanceof Blob) ||
+    (typeof FormData !== "undefined" && value instanceof FormData) ||
+    (typeof URLSearchParams !== "undefined" && value instanceof URLSearchParams) ||
+    (typeof ReadableStream !== "undefined" && value instanceof ReadableStream)
+  );
+}
+
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  if (signal?.aborted)
+    return Promise.reject(new PmHttpError(null, "aborted", "Request aborted", "aborted"));
+  // Promise.withResolvers needs Node 22 and ES2024; this transport also runs on
+  // older daemon hosts, so keep the executor form for the abort cleanup path.
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal?.removeEventListener("abort", abort);
+      resolve();
+    }, ms);
+    const abort = () => {
+      clearTimeout(timer);
+      reject(new PmHttpError(null, "aborted", "Request aborted", "aborted"));
+    };
+    signal?.addEventListener("abort", abort, { once: true });
+  });
+}
+
+export class PmTransport {
+  readonly baseUrl: string;
+  private readonly fetchImpl: typeof globalThis.fetch;
+  private readonly token: string | (() => string | undefined) | undefined;
+  private readonly cookie: string | (() => string | undefined) | undefined;
+  private readonly origin: string | undefined;
+  private readonly credentials: RequestCredentials;
+  private readonly defaultHeaders: Record<string, string>;
+  private readonly timeoutMs: number;
+
+  constructor(options: PmTransportOptions) {
+    this.baseUrl = normalizeBaseUrl(options.baseUrl);
+    this.fetchImpl = options.fetch ?? globalThis.fetch.bind(globalThis);
+    this.token = options.token;
+    this.cookie = options.cookie;
+    this.origin = options.origin;
+    this.credentials = options.credentials ?? "include";
+    this.defaultHeaders = options.headers ?? {};
+    this.timeoutMs = options.timeoutMs ?? 20_000;
+  }
+
+  url(path: string, query?: PmQuery): string {
+    if (!path.startsWith("/")) throw new Error(`PM request path must start with /: ${path}`);
+    const url = new URL(`${this.baseUrl}${path}`);
+    if (query) {
+      for (const [key, raw] of Object.entries(query)) {
+        if (raw === undefined || raw === null) continue;
+        const values = Array.isArray(raw) ? raw : [raw];
+        for (const value of values) {
+          if (value === undefined || value === null) continue;
+          url.searchParams.append(key, String(value));
+        }
+      }
+    }
+    return url.href;
+  }
+
+  private requestHeaders(extra?: Record<string, string>): Headers {
+    const headers = new Headers(this.defaultHeaders);
+    for (const [key, value] of Object.entries(extra ?? {})) headers.set(key, value);
+    const token = typeof this.token === "function" ? this.token() : this.token;
+    const cookie = typeof this.cookie === "function" ? this.cookie() : this.cookie;
+    if (token) headers.set("authorization", `Bearer ${token}`);
+    else if (cookie) headers.set("cookie", cookie);
+    if (this.origin) headers.set("origin", this.origin);
+    return headers;
+  }
+
+  async send(options: PmSendOptions): Promise<Response> {
+    const method = options.method.toUpperCase();
+    const headers = this.requestHeaders(options.headers);
+    let body: BodyInit | undefined;
+    if (options.body !== undefined) {
+      if (isBinaryBody(options.body)) {
+        body = options.body;
+      } else {
+        headers.set("content-type", "application/json");
+        body = JSON.stringify(options.body);
+      }
+    }
+    if (!headers.has("accept"))
+      headers.set("accept", "application/json, text/plain;q=0.9, */*;q=0.1");
+
+    const deadline = options.timeoutMs ?? this.timeoutMs;
+    const controller = new AbortController();
+    let timedOut = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const abort = () => controller.abort(options.signal?.reason);
+    if (options.signal) {
+      if (options.signal.aborted) abort();
+      else options.signal.addEventListener("abort", abort, { once: true });
+    }
+    if (deadline > 0) {
+      timer = setTimeout(() => {
+        timedOut = true;
+        controller.abort();
+      }, deadline);
+    }
+    try {
+      return await this.fetchImpl(this.url(options.path, options.query), {
+        method,
+        headers,
+        body,
+        signal: controller.signal,
+        credentials: this.credentials,
+        redirect: "follow",
+      });
+    } catch (error) {
+      if (options.signal?.aborted)
+        throw new PmHttpError(null, "aborted", "Request aborted", "aborted", { cause: error });
+      if (timedOut) {
+        throw new PmHttpError(
+          null,
+          "timeout",
+          `PM request timed out after ${deadline}ms`,
+          "timeout",
+          {
+            cause: error,
+            retryable: true,
+            outcomeUnknown: SAFE_METHODS[method] !== true,
+          },
+        );
+      }
+      throw new PmHttpError(
+        null,
+        "network_error",
+        "PM request failed before a response",
+        "network",
+        {
+          cause: error,
+          retryable: true,
+          outcomeUnknown: SAFE_METHODS[method] !== true,
+        },
+      );
+    } finally {
+      clearTimeout(timer);
+      options.signal?.removeEventListener("abort", abort);
+    }
+  }
+
+  async error(response: Response, method: string): Promise<PmHttpError> {
+    const text = await response.text().catch(() => "");
+    let parsed: unknown;
+    if (text) {
+      try {
+        parsed = JSON.parse(text);
+      } catch {
+        parsed = undefined;
+      }
+    }
+    const envelope = errorEnvelope(parsed);
+    const status = response.status;
+    const kind = errorKind(status);
+    const code = envelope.code ?? `http_${status}`;
+    const message =
+      envelope.message ??
+      (text.trim().slice(0, 300) || response.statusText || `PM request failed with ${status}`);
+    const requestId = envelope.requestId ?? response.headers.get("x-request-id") ?? undefined;
+    return new PmHttpError(status, code, message, kind, {
+      requestId,
+      details: envelope.details ?? parsed ?? text,
+      retryable: kind === "throttled" || kind === "unavailable",
+      outcomeUnknown: SAFE_METHODS[method] !== true && (status >= 500 || status === 429),
+    });
+  }
+
+  private async decode<T>(response: Response, method: string): Promise<T> {
+    if (response.status === 204 || response.status === 205) return undefined as T;
+    const contentType = response.headers.get("content-type") ?? "";
+    if (isJsonContentType(contentType)) return (await response.json()) as T;
+    const text = await response.text();
+    if (!text) return undefined as T;
+    throw new PmHttpError(
+      response.status,
+      "invalid_response",
+      `Expected JSON from PM but received ${contentType || "an untyped body"}`,
+      "server",
+      {
+        details: text.slice(0, 500),
+        retryable: false,
+        outcomeUnknown: SAFE_METHODS[method] !== true,
+      },
+    );
+  }
+
+  async json<T>(options: PmSendOptions): Promise<T> {
+    const response = await this.send(options);
+    if (!response.ok) throw await this.error(response, options.method);
+    return this.decode<T>(response, options.method);
+  }
+
+  async raw(options: PmSendOptions): Promise<Response> {
+    return this.send(options);
+  }
+
+  async download(options: PmSendOptions): Promise<PmDownload> {
+    const response = await this.send(options);
+    if (!response.ok) throw await this.error(response, options.method);
+    const size = Number(response.headers.get("content-length") ?? "");
+    return {
+      body: response.body,
+      filename: parseContentDisposition(response.headers.get("content-disposition")),
+      contentType: response.headers.get("content-type") ?? "application/octet-stream",
+      size: Number.isFinite(size) ? size : undefined,
+      status: response.status,
+    };
+  }
+
+  private async *streamOnce(
+    path: string,
+    options: PmSseOptions,
+    state: { lastEventId?: string },
+  ): AsyncGenerator<PmSseEvent> {
+    const response = await this.send({
+      method: "GET",
+      path,
+      query: options.query,
+      signal: options.signal,
+      timeoutMs: 0,
+      headers: {
+        accept: "text/event-stream",
+        ...(state.lastEventId ? { "last-event-id": state.lastEventId } : {}),
+        ...options.headers,
+      },
+    });
+    if (!response.ok) throw await this.error(response, "GET");
+    if (!response.body) {
+      throw new PmHttpError(
+        response.status,
+        "invalid_response",
+        "PM SSE response has no body",
+        "server",
+      );
+    }
+    for await (const event of parseSse(response.body)) {
+      if (event.id) state.lastEventId = event.id;
+      yield event;
+    }
+  }
+
+  async *sse(path: string, options: PmSseOptions = {}): AsyncGenerator<PmSseEvent> {
+    const reconnect = options.reconnect ?? true;
+    const maxDelay = options.maxDelayMs ?? 15_000;
+    const initialDelay = options.initialDelayMs ?? 750;
+    let delay = initialDelay;
+    const state: { lastEventId?: string } = { lastEventId: options.lastEventId };
+    for (;;) {
+      let received = false;
+      try {
+        for await (const event of this.streamOnce(path, options, state)) {
+          received = true;
+          yield event;
+        }
+      } catch (error) {
+        if (!reconnect || options.signal?.aborted) throw error;
+        if (error instanceof PmHttpError) {
+          if (error.kind === "aborted") throw error;
+          if (error.status !== null && !error.retryable) throw error;
+        }
+      }
+      if (!reconnect || options.signal?.aborted) return;
+      delay = received ? initialDelay : Math.min(delay * 2, maxDelay);
+      await sleep(delay, options.signal);
+    }
+  }
+}
+
+class SseParser {
+  private event: PmSseEvent | undefined;
+  private lineBuffer = "";
+
+  push(chunk: string): PmSseEvent[] {
+    this.lineBuffer += chunk;
+    const output: PmSseEvent[] = [];
+    for (;;) {
+      const match = /\r\n|\r|\n/.exec(this.lineBuffer);
+      if (!match) break;
+      const line = this.lineBuffer.slice(0, match.index);
+      this.lineBuffer = this.lineBuffer.slice(match.index + match[0].length);
+      const event = this.consumeLine(line);
+      if (event) output.push(event);
+    }
+    return output;
+  }
+
+  finish(): PmSseEvent[] {
+    const output: PmSseEvent[] = [];
+    if (this.lineBuffer.length > 0) {
+      const event = this.consumeLine(this.lineBuffer);
+      this.lineBuffer = "";
+      if (event) output.push(event);
+    }
+    const event = this.dispatch();
+    if (event) output.push(event);
+    return output;
+  }
+
+  private consumeLine(line: string): PmSseEvent | undefined {
+    if (line === "") return this.dispatch();
+    if (line.startsWith(":")) return undefined;
+    const colon = line.indexOf(":");
+    const field = colon === -1 ? line : line.slice(0, colon);
+    const rawValue = colon === -1 ? "" : line.slice(colon + 1);
+    this.applyField(field, rawValue.startsWith(" ") ? rawValue.slice(1) : rawValue);
+    return undefined;
+  }
+
+  private applyField(field: string, value: string): void {
+    this.event ??= { data: "" };
+    if (field === "data")
+      this.event.data = this.event.data ? `${this.event.data}\n${value}` : value;
+    else if (field === "event") this.event.event = value;
+    else if (field === "id") this.event.id = value;
+    else if (field === "retry") {
+      const retry = Number(value);
+      if (Number.isInteger(retry) && retry >= 0) this.event.retry = retry;
+    }
+  }
+
+  private dispatch(): PmSseEvent | undefined {
+    const event = this.event;
+    this.event = undefined;
+    return event;
+  }
+}
+
+/** Parses the SSE wire format. `data` lines join with `\n` as the spec requires. */
+export async function* parseSse(body: ReadableStream<Uint8Array>): AsyncGenerator<PmSseEvent> {
+  const reader = body.getReader();
+  const decoder = new TextDecoder();
+  const parser = new SseParser();
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      for (const event of parser.push(decoder.decode(value, { stream: true }))) yield event;
+    }
+    for (const event of parser.push(decoder.decode())) yield event;
+    for (const event of parser.finish()) yield event;
+  } finally {
+    reader.releaseLock();
+    await body.cancel().catch(() => undefined);
+  }
+}
+
+export function decodeSseData(event: PmSseEvent): unknown {
+  const data = event.data.trim();
+  if (!data) return undefined;
+  if (data.startsWith("{") || data.startsWith("[")) {
+    try {
+      return JSON.parse(data);
+    } catch {
+      return data;
+    }
+  }
+  return data;
+}

@@ -1,0 +1,6 @@
+{
+  "id": "dovspace-pm",
+  "requirements": {
+    "paseo": ">=0.17.0"
+  }
+}
