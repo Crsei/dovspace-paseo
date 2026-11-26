@@ -1,26 +1,27 @@
 import { useCallback } from "react";
+import { openExternalUrl, useSettings } from "@getpaseo/plugin/client";
 import type {
   PluginClientContext,
   PluginScreenProps,
   PluginSidebarItemProps,
 } from "@getpaseo/plugin/client";
 import { SidebarRow } from "@getpaseo/plugin/client/ui";
+import { pmConnection } from "./shared/contracts.js";
 import { messages } from "./client/messages.js";
 import { PmOverview } from "./client/overview.js";
 import { PmSettings } from "./client/settings.js";
 import { PmWorkspaceBadge } from "./client/workspace-badge.js";
 
-function OpenPmItem({ currentScreen, openScreen }: PluginSidebarItemProps) {
-  const openOverview = useCallback(() => {
-    openScreen({ screenId: "overview" });
-  }, [openScreen]);
-  return (
-    <SidebarRow
-      icon="FolderKanban"
-      active={currentScreen?.screenId === "overview"}
-      onPress={openOverview}
-    />
-  );
+function OpenPmItem({ openScreen }: PluginSidebarItemProps) {
+  const settings = useSettings(pmConnection);
+  const baseUrl = settings.status === "ready" ? settings.values.baseUrl : "http://127.0.0.1:3224";
+  const openPm = useCallback(() => {
+    const url = `${baseUrl.replace(/\/$/, "")}/pm`;
+    void openExternalUrl(url).catch(() => {
+      openScreen({ screenId: "connection" });
+    });
+  }, [baseUrl, openScreen]);
+  return <SidebarRow icon="FolderKanban" onPress={openPm} />;
 }
 
 export default function contribute(client: PluginClientContext) {
@@ -55,12 +56,21 @@ export default function contribute(client: PluginClientContext) {
       Component: PmWorkspaceBadge,
     }),
     client.addCommandCenterItem({
-      id: "open-pm",
-      title: messages.message("openCommand"),
+      id: "pm-status",
+      title: messages.message("statusCommand"),
       icon: "FolderKanban",
       context: "global",
       onSelect({ openScreen }) {
         openScreen({ screenId: "overview" });
+      },
+    }),
+    client.addCommandCenterItem({
+      id: "pm-settings",
+      title: messages.message("settingsCommand"),
+      icon: "Settings",
+      context: "global",
+      onSelect({ openSettings }) {
+        openSettings("connection");
       },
     }),
   ];

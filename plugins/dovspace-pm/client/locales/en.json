@@ -64,5 +64,7 @@
   "reset": "Reset",
   "mappingRequired": "Paseo and PM workspace IDs are required.",
   "noMappings": "No mappings yet.",
-  "settingsLoadError": "Could not load settings: {{error}}"
+  "settingsLoadError": "Could not load settings: {{error}}",
+  "statusCommand": "Project Management status",
+  "settingsCommand": "Project Management settings"
 }

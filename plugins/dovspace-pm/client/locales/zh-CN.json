@@ -63,5 +63,7 @@
   "reset": "重置",
   "mappingRequired": "Paseo 和 PM 工作区 ID 均为必填项。",
   "noMappings": "暂无关联。",
-  "settingsLoadError": "无法加载设置：{{error}}"
+  "settingsLoadError": "无法加载设置：{{error}}",
+  "statusCommand": "项目管理状态",
+  "settingsCommand": "项目管理设置"
 }
