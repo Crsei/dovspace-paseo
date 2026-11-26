@@ -47,8 +47,24 @@ const theme = {
   fontSize: {
     xs: 10,
     sm: 12,
+    control: 13,
     base: 14,
     lg: 16,
+  },
+  lineHeight: {
+    diff: 22,
+    meta: 16,
+    control: 20,
+    body: 20,
+    reading: 24,
+    section: 24,
+    page: 28,
+  },
+  fontWeight: {
+    normal: "400",
+    medium: "500",
+    semibold: "600",
+    bold: "bold",
   },
   opacity: {
     50: 0.5,
@@ -221,11 +237,11 @@ describe("control geometry", () => {
     const geometry = createControlGeometry(theme);
 
     expect(geometry.fieldTextSm.fontSize).toBe(12);
-    expect(geometry.fieldTextSm.lineHeight).toBe(17);
-    expect(geometry.fieldTextMd.fontSize).toBe(14);
+    expect(geometry.fieldTextSm.lineHeight).toBe(16);
+    expect(geometry.fieldTextMd.fontSize).toBe(13);
     expect(geometry.fieldTextMd.lineHeight).toBe(20);
     expect(geometry.formTextInputSm.fontSize).toBe(12);
-    expect(geometry.formTextInputMd.fontSize).toBe(14);
+    expect(geometry.formTextInputMd.fontSize).toBe(13);
   });
 
   it("derives field padding from content and border without changing the control height", () => {
@@ -281,7 +297,7 @@ describe("control geometry", () => {
     // Same size name means the same label size on every control kind.
     expect(geometry.segmentedLabelSm.fontSize).toBe(12);
     expect(geometry.segmentedLabelSm.fontSize).toBe(geometry.buttonTextSm.fontSize);
-    expect(geometry.segmentedLabelMd.fontSize).toBe(14);
+    expect(geometry.segmentedLabelMd.fontSize).toBe(13);
     expect(geometry.segmentedLabelMd.fontSize).toBe(geometry.buttonTextMd.fontSize);
 
     // Segments sit inside a track, so they run tighter than a standalone button of the same
