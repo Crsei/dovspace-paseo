@@ -99,6 +99,7 @@ export const es: TranslationResources = {
       searchingFiles: "Buscando archivos...",
       noMatches: "No hay coincidencias",
       actions: "Comportamiento",
+      projectManagement: "Gestión de proyectos",
       files: "Archivos",
       workspaces: "Espacios de trabajo",
       recentWorkspaces: "Espacios de trabajo recientes",
@@ -387,7 +388,7 @@ export const es: TranslationResources = {
       details: "Detalles",
     },
     dictation: {
-      insecureContext: "Abre Paseo por HTTPS o en localhost para usar el micrófono.",
+      insecureContext: "Abre Dovspace por HTTPS o en localhost para usar el micrófono.",
       unsupported: "El dictado no está disponible en este navegador.",
       noMicrophone: "Conecta un micrófono e inténtalo de nuevo.",
       permissionDenied: "Permite el acceso al micrófono e inténtalo de nuevo.",
@@ -959,7 +960,7 @@ export const es: TranslationResources = {
           mergePrNoGithub:
             "FusionarPRno está disponible en este momento porqueGitHubno está conectado",
           archiveNotWorktree:
-            "El archivo no está disponible aquí porque este espacio de trabajo no se creó como un árbol de trabajoPaseo",
+            "El archivo no está disponible aquí porque este espacio de trabajo no se creó como un árbol de trabajoDovspace",
           mergePrNoForge:
             "Fusionar {{noun}} no está disponible en este momento porque {{brand}} no está conectado",
           mergePrMissing:
@@ -1340,7 +1341,7 @@ export const es: TranslationResources = {
       discord: "Discord",
       github: "Crear incidencia en GitHub",
       whatsNew: "Novedades",
-      appName: "Paseo",
+      appName: "Dovspace",
     },
     sections: {
       sessions: "Historial",
@@ -1520,7 +1521,7 @@ export const es: TranslationResources = {
       close: "Cerrar ventana",
     },
     quitting: {
-      title: "Saliendo dePaseo...",
+      title: "Saliendo deDovspace...",
       detail: "Deteniendo el demonio local.",
     },
     daemon: {
@@ -1535,20 +1536,20 @@ export const es: TranslationResources = {
       },
       management: {
         title: "Administrar demonio incorporado",
-        hint: "Deje quePaseoinicie y detenga el demonio incorporado",
+        hint: "Deje queDovspaceinicie y detenga el demonio incorporado",
         pauseTitle: "Pausar el demonio incorporado",
         pauseMessage:
           "Esto detendrá el demonio incorporado inmediatamente. Se detendrán los agentes en ejecución y los terminales conectados al demonio integrado.",
         pauseAndStop: "Pausa y para",
         registrationFailed:
-          "Built-in daemon started, but Paseo could not save the localhost connection. Toggle daemon management off and on again, or add localhost manually.",
+          "Built-in daemon started, but Dovspace could not save the localhost connection. Toggle daemon management off and on again, or add localhost manually.",
         pausedStopFailed:
-          "La gestión del demonio integrado se pausó, peroPaseono pudo detener el demonio.",
+          "La gestión del demonio integrado se pausó, peroDovspaceno pudo detener el demonio.",
         updateFailed: "No se puede actualizar la gestión de demonios integrada.",
       },
       keepRunning: {
         title: "Mantener el demonio en ejecución después de salir",
-        hint: "Daemonsigue ejecutándose cuando sales dePaseo",
+        hint: "Daemonsigue ejecutándose cuando sales deDovspace",
       },
       logs: {
         title: "Archivo de registro",
@@ -1618,7 +1619,7 @@ export const es: TranslationResources = {
     },
     rosetta: {
       title: "Descargue la compilaciónApple Silicon",
-      runningIntel: "Estás ejecutando la compilaciónInteldePaseoenRosettaenApple Silicon.",
+      runningIntel: "Estás ejecutando la compilaciónInteldeDovspaceenRosettaenApple Silicon.",
       highCpu:
         "Esto provoca un uso elevado de la CPU. Descargue la compilaciónApple Siliconpara solucionarlo.",
       download: "Descargar",
@@ -1665,7 +1666,7 @@ export const es: TranslationResources = {
         microphone: "El estado del micrófono aún no se ha comprobado.",
       },
       testNotification: {
-        title: "Prueba de notificaciónPaseo",
+        title: "Prueba de notificaciónDovspace",
         body: "Si puede ver esto, las notificaciones de escritorio funcionan.",
         notDelivered:
           "La notificación no fue entregada. Verifique Configuración del sistema> Notificaciones.",
@@ -1675,15 +1676,15 @@ export const es: TranslationResources = {
     integrations: {
       cli: {
         statusFailed: "No se puede verificar el estado de instalación deCLI.",
-        installFailed: "No se puede instalar elPaseoCLI.",
-        uninstallFailed: "No se pudo desinstalar la CLI de Paseo.",
+        installFailed: "No se puede instalar elDovspaceCLI.",
+        uninstallFailed: "No se pudo desinstalar la CLI de Dovspace.",
         keptForeign:
-          "Se conservó un comando paseo que Paseo no instaló. Elimínalo tú mismo para desinstalarlo.",
+          "Se conservó un comando paseo que Dovspace no instaló. Elimínalo tú mismo para desinstalarlo.",
       },
     },
   },
   rootError: {
-    title: "Paseo tuvo un problema.",
+    title: "Dovspace tuvo un problema.",
     body: "Vuelve a intentarlo para recargar la app. Si sigue ocurriendo, incluye los detalles de abajo al reportarlo.",
     details: "Detalles",
   },
@@ -1786,7 +1787,7 @@ export const es: TranslationResources = {
   },
   onboarding: {
     setup: {
-      title: "Paseo",
+      title: "Dovspace",
       stepCounter: "Paso {{current}} de {{total}}",
       skip: "Omitir configuración",
       continue: "Continuar",
@@ -1794,13 +1795,13 @@ export const es: TranslationResources = {
       steps: {
         appearance: {
           label: "Apariencia",
-          title: "Te damos la bienvenida a Paseo",
+          title: "Te damos la bienvenida a Dovspace",
           description: "Empecemos por elegir una apariencia",
         },
         providers: {
           label: "Proveedores",
           title: "Tus proveedores",
-          description: "Paseo usa las CLI de agentes que ya están en este ordenador",
+          description: "Dovspace usa las CLI de agentes que ya están en este ordenador",
         },
         projects: {
           label: "Proyectos",
@@ -1820,14 +1821,14 @@ export const es: TranslationResources = {
         },
         orchestration: {
           label: "Orquestación",
-          title: "Deja que los agentes usen Paseo",
+          title: "Deja que los agentes usen Dovspace",
           description: "Deja que tus agentes creen espacios de trabajo y hablen con otros agentes",
         },
         phone: {
           label: "Móvil",
           title: "Lleva tus agentes contigo",
           description:
-            "La app móvil nativa completa te permite controlar cualquier ordenador con Paseo desde tu teléfono",
+            "La app móvil nativa completa te permite controlar cualquier ordenador con Dovspace desde tu teléfono",
           appStore: "App Store",
           googlePlay: "Google Play",
           connectTitle: "Elige cómo conectarte",
@@ -1839,7 +1840,7 @@ export const es: TranslationResources = {
         },
       },
     },
-    title: "Bienvenido aPaseo",
+    title: "Bienvenido aDovspace",
     subtitle: "Conecte su computadora para comenzar",
     actions: {
       settings: "Ajustes",
@@ -1951,7 +1952,7 @@ export const es: TranslationResources = {
     },
     direct: {
       title: "Conexión directa",
-      helper: "Ingrese la dirección de un servidorPaseo.",
+      helper: "Ingrese la dirección de un servidorDovspace.",
       fields: {
         host: "Host",
         port: "Puerto",
@@ -1994,7 +1995,7 @@ export const es: TranslationResources = {
     },
     remoteSsh: {
       title: "SSH remoto",
-      helper: "Conéctate a un daemon de Paseo en el host remoto.",
+      helper: "Conéctate a un daemon de Dovspace en el host remoto.",
       fields: {
         target: "Host SSH",
         password: "Contraseña del daemon",
@@ -2057,7 +2058,7 @@ export const es: TranslationResources = {
       enableDescription:
         "El relé permite conectar este dispositivo desde cualquier lugar. El tráfico de emparejamiento está cifrado de extremo a extremo.",
       relayDocs: "Cómo funciona el relé",
-      relayDocsAccessibility: "Leer cómo funciona el relé de Paseo",
+      relayDocsAccessibility: "Leer cómo funciona el relé de Dovspace",
       enableRelay: "Habilitar relé",
       enablingRelay: "Habilitando...",
       notNow: "Ahora no",
@@ -2065,9 +2066,9 @@ export const es: TranslationResources = {
         "Sin relé, conéctese directamente por TCP, Tailscale u otra VPN. No se crea ningún código QR.",
       tailscaleDocs: "Configurar Tailscale",
       tailscaleDocsAccessibility: "Leer cómo conectarse con Tailscale",
-      updateRequired: "Actualice el host para habilitar el relé desde Paseo Desktop.",
+      updateRequired: "Actualice el host para habilitar el relé desde Dovspace Desktop.",
       unavailable: "Oferta de maridaje no disponible.",
-      hint: "Escanee este códigoQRconPaseoen su teléfono o copie el enlace a continuación.",
+      hint: "Escanee este códigoQRconDovspaceen su teléfono o copie el enlace a continuación.",
       securityWarning:
         "Trata este enlace de emparejamiento como una contraseña. Cualquiera que lo tenga puede acceder a este daemon.",
       qrUnavailable: "CódigoQRno disponible.",
@@ -2102,7 +2103,7 @@ export const es: TranslationResources = {
   serviceUrl: {
     title: "Servicio abiertoURL",
     message: "¿Abrir{{url}}?",
-    inPaseo: "EnPaseo",
+    inDovspace: "EnDovspace",
     externalBrowser: "Navegador externo",
     dontAskAgain: "no vuelvas a preguntar",
   },
@@ -2156,7 +2157,7 @@ export const es: TranslationResources = {
         alwaysUseFilename: "Usar siempre para {{filename}}",
         option: "{{title}} — {{owner}}",
         builtin: {
-          owner: "Paseo",
+          owner: "Dovspace",
           markdown: "Markdown",
           html: "HTML",
           image: "Imagen",
@@ -2253,8 +2254,8 @@ export const es: TranslationResources = {
       other: "usó {{count}} herramientas adicionales",
     },
     paseoCalls: {
-      one: "llamó a Paseo {{count}} vez",
-      other: "llamó a Paseo {{count}} veces",
+      one: "llamó a Dovspace {{count}} vez",
+      other: "llamó a Dovspace {{count}} veces",
     },
     and: "y",
   },
@@ -2440,7 +2441,7 @@ export const es: TranslationResources = {
       send: "Enviar",
       sending: "Enviando...",
       sentTitle: "Notificación de prueba enviada",
-      sentDescription: "Paseo entregó la notificación al sistema operativo.",
+      sentDescription: "Dovspace entregó la notificación al sistema operativo.",
       sendFailedTitle: "No se pudo enviar la notificación de prueba",
     },
     hostSections: {
@@ -2461,14 +2462,14 @@ export const es: TranslationResources = {
     metadataGeneration: {
       title: "Generación de metadatos",
       description:
-        "Elige el modelo que Paseo usa para títulos de espacios de trabajo, nombres de ramas, mensajes de commit y borradores de pull requests",
+        "Elige el modelo que Dovspace usa para títulos de espacios de trabajo, nombres de ramas, mensajes de commit y borradores de pull requests",
       selection: "Selección de modelo",
       automatic: "Automática",
       preferred: "Manual",
-      automaticHint: "Paseo elige un modelo rápido disponible",
-      preferredHint: "Elige el modelo que usa Paseo",
+      automaticHint: "Dovspace elige un modelo rápido disponible",
+      preferredHint: "Elige el modelo que usa Dovspace",
       model: "Modelo",
-      modelHint: "Solo se usa este modelo. Si falla, Paseo no prueba otro modelo",
+      modelHint: "Solo se usa este modelo. Si falla, Dovspace no prueba otro modelo",
       docs: "Documentación",
       saveError: "No se pudo actualizar la generación de metadatos",
     },
@@ -2548,7 +2549,7 @@ export const es: TranslationResources = {
         title: "Datos del navegador",
         siteData: "Cookies y datos de sitios",
         description:
-          "Las pestañas del navegador comparten inicios de sesión y datos de sitios en Paseo.",
+          "Las pestañas del navegador comparten inicios de sesión y datos de sitios en Dovspace.",
         clear: "Borrar datos del navegador",
         clearing: "Borrando...",
         confirmTitle: "¿Borrar los datos del navegador?",
@@ -2591,7 +2592,7 @@ export const es: TranslationResources = {
       serviceUrls: {
         options: {
           ask: "Preguntar",
-          inApp: "EnPaseo",
+          inApp: "EnDovspace",
           external: "Navegador externo",
         },
       },
@@ -2672,7 +2673,7 @@ export const es: TranslationResources = {
         label: "Actualizaciones de aplicaciones",
         readyToInstall: "Listo para instalar:{{version}}",
         installTitle: "Instalar actualización de escritorio",
-        installMessage: "Esto actualizaPaseoen esta computadora.",
+        installMessage: "Esto actualizaDovspaceen esta computadora.",
         installConfirm: "Instalar actualización",
         update: "Actualizar",
         updateTo: "Actualización a{{version}}",
@@ -2849,7 +2850,7 @@ export const es: TranslationResources = {
       commandLine: {
         title: "línea de comando",
         description: "Agentes de control y script desde tu terminal",
-        accessibilityLabel: "Instalar la CLI de Paseo",
+        accessibilityLabel: "Instalar la CLI de Dovspace",
       },
     },
     permissions: {
@@ -2952,12 +2953,12 @@ export const es: TranslationResources = {
         ...en.settings.host.skills,
         sectionTitle: "Habilidades de orquestación",
         title: "Habilidades de orquestación",
-        description: "Enseña a tus agentes a usar las herramientas de Paseo",
+        description: "Enseña a tus agentes a usar las herramientas de Dovspace",
         updateAvailable: "Actualización disponible",
-        updateTitle: "¿Actualizar las habilidades dePaseo?",
-        uninstallTitle: "¿Desinstalar las habilidadesPaseo?",
+        updateTitle: "¿Actualizar las habilidades deDovspace?",
+        uninstallTitle: "¿Desinstalar las habilidadesDovspace?",
         uninstallMessage:
-          "Elimina todas las habilidades de orquestación Paseo de ~/.agents, ~/.claude, ~/.codex y ~/.gemini/config.",
+          "Elimina todas las habilidades de orquestación Dovspace de ~/.agents, ~/.claude, ~/.codex y ~/.gemini/config.",
         choose: "Elegir habilidades",
         chooseAll: "Todas las habilidades",
         chooseAllHint:
@@ -2991,10 +2992,10 @@ export const es: TranslationResources = {
         title: "Orquestación",
         unavailable: "Conéctese a este host para administrar la orquestación",
         enableTools: {
-          title: "Habilitar herramientasPaseo",
+          title: "Habilitar herramientasDovspace",
           hint: "Los agentes podrán gestionar árboles de trabajo, agentes y horarios.",
-          accessibilityLabel: "Inyectar herramientasPaseo",
-          updateFailed: "No se pudieron actualizar las herramientas de Paseo.",
+          accessibilityLabel: "Inyectar herramientasDovspace",
+          updateFailed: "No se pudieron actualizar las herramientas de Dovspace.",
         },
         systemPrompt: {
           title: "Aviso del sistema",
@@ -3136,10 +3137,10 @@ export const es: TranslationResources = {
             "Este host no está conectado. Espere a que se conecte antes de reiniciar.",
           offlineTitle: "Hostfuera de línea",
           offlineMessage:
-            "Este anfitrión está desconectado.Paseose vuelve a conectar automáticamente; espere hasta que vuelva a estar en línea antes de reiniciar.",
+            "Este anfitrión está desconectado.Dovspacese vuelve a conectar automáticamente; espere hasta que vuelva a estar en línea antes de reiniciar.",
           requestFailedTitle: "Error",
           requestFailedMessage:
-            "No se pudo enviar la solicitud de reinicio.Paseose vuelve a conectar automáticamente; inténtelo nuevamente una vez que el host se muestre en línea.",
+            "No se pudo enviar la solicitud de reinicio.Dovspacese vuelve a conectar automáticamente; inténtelo nuevamente una vez que el host se muestre en línea.",
           closeTerminals: "Reiniciar y cerrar terminales",
           closeTerminalsHint:
             "Reinicia y además cierra todas las terminales abiertas en este host.",
@@ -3150,7 +3151,7 @@ export const es: TranslationResources = {
         },
         update: {
           desktopManagedHint:
-            "Este daemon está administrado por Paseo Desktop. Actualiza Paseo Desktop en el host.",
+            "Este daemon está administrado por Dovspace Desktop. Actualiza Dovspace Desktop en el host.",
           title: "Update daemon",
           hint: "Update the daemon to the latest version and restart it",
           confirm: "Update",
@@ -3349,7 +3350,7 @@ export const es: TranslationResources = {
         newScript: "Nuevo guión",
         editScript: "Editar{{name}}",
         runAsService: "Ejecutar como servicio",
-        serviceHint: "Paseosupervisa el proceso y asigna un puerto vía $PASEO_PORT",
+        serviceHint: "Dovspacesupervisa el proceso y asigna un puerto vía $PASEO_PORT",
         actions: {
           add: "Agregar guión",
           edit: "Editar",
@@ -3358,7 +3359,7 @@ export const es: TranslationResources = {
       },
       metadata: {
         title: "Generación de metadatos",
-        info: "Instrucciones específicas del proyecto inyectadas en los mensajes de IA quePaseoutiliza para generar metadatos; úselas para hacer cumplir las convenciones de su equipo, como la denominación de ramas, el estilo de confirmación o el formatoPR.",
+        info: "Instrucciones específicas del proyecto inyectadas en los mensajes de IA queDovspaceutiliza para generar metadatos; úselas para hacer cumplir las convenciones de su equipo, como la denominación de ramas, el estilo de confirmación o el formatoPR.",
         branchName: "Nombres de sucursales",
         branchNamePlaceholder: "Prefijo ramas con feat/ o fix/, mb/ para ramas personales",
         commitMessage: "Confirmar mensajes",

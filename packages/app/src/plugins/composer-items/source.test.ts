@@ -369,6 +369,7 @@ describe("a Command Center item reaching an agent's composer by id", () => {
       workspaceId: "workspace-1",
       agentId: "agent-1",
       navigation: {
+        openRoute() {},
         openSettings() {},
         openSurface() {},
         openWorkspacePanel() {},

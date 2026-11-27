@@ -35,6 +35,7 @@ function registry(version: string) {
           cleanups++;
         },
         openScreen() {},
+        openRoute() {},
         openSurface() {},
         composers: () => [],
         async playAudio() {},

@@ -9,7 +9,7 @@ import { expectFileTabOpen, openFileFromExplorer } from "./file-explorer";
 /** A directory plugin whose "Rich Markdown" file panel claims `.md`, next to the built-in. */
 export const MARKDOWN_PANEL_PLUGIN_ID = "file-panel-picker-e2e";
 export const MARKDOWN_PANEL_ID = `plugin:${MARKDOWN_PANEL_PLUGIN_ID}/rich-markdown`;
-export const BUILTIN_MARKDOWN_OPTION = "Markdown — Paseo";
+export const BUILTIN_MARKDOWN_OPTION = "Markdown — Dovspace";
 export const PLUGIN_MARKDOWN_OPTION = `Rich Markdown — ${MARKDOWN_PANEL_PLUGIN_ID}`;
 
 const SOURCE = `import React from "react";

@@ -57,6 +57,7 @@ function registry(
           throw new Error("Unexpected plugin RPC");
         },
         openScreen: () => {},
+        openRoute: () => {},
         openSurface: () => {},
         composers: () => [],
         openSettings: () => {},

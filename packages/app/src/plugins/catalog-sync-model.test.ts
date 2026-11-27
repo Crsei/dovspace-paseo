@@ -149,6 +149,7 @@ function harness() {
           disposals++;
         },
         openScreen() {},
+        openRoute() {},
         openSurface() {},
         composers: () => [],
         async playAudio() {},

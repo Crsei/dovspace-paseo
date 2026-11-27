@@ -181,6 +181,7 @@ describe("plugin Command Center contributions", () => {
       plugins: [installed],
       state: stateSource(),
       navigation: {
+        openRoute() {},
         openSettings() {},
         openSurface() {},
         openWorkspacePanel() {},
@@ -230,6 +231,7 @@ describe("plugin Command Center contributions", () => {
       workspaceId: workspace.id,
       agentId: agent.id,
       navigation: {
+        openRoute() {},
         openSettings() {},
         openSurface(pluginId, surfaceId) {
           opened.push(`${pluginId}/surface/${surfaceId}`);
@@ -262,6 +264,7 @@ describe("plugin Command Center contributions", () => {
         workspaceId: workspace.id,
         agentId: agent.id,
         navigation: {
+          openRoute() {},
           openSettings() {},
           openSurface() {},
           openWorkspacePanel() {},

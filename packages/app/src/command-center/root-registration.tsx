@@ -7,6 +7,7 @@ import {
   CircleDashed,
   Copy,
   Folder,
+  FolderKanban,
   FolderPlus,
   History,
   Home,
@@ -68,6 +69,9 @@ const ThemedCircleDashed = withUnistyles(CircleDashed, (theme) => ({
 const ThemedPanelLeft = withUnistyles(PanelLeft, (theme) => ({
   color: theme.colors.foregroundMuted,
 }));
+const ThemedFolderKanban = withUnistyles(FolderKanban, (theme) => ({
+  color: theme.colors.foregroundMuted,
+}));
 const BrowserHostCopyIcon = getCommandCenterIcon(Copy);
 
 function PlusIcon({ size }: CommandCenterIconProps) {
@@ -112,6 +116,10 @@ function CircleDashedIcon({ size }: CommandCenterIconProps) {
 
 function PanelLeftIcon({ size }: CommandCenterIconProps) {
   return <ThemedPanelLeft size={size} strokeWidth={2.2} />;
+}
+
+function FolderKanbanIcon({ size }: CommandCenterIconProps) {
+  return <ThemedFolderKanban size={size} strokeWidth={2.2} />;
 }
 
 export function CommandCenterRootActions() {
@@ -252,6 +260,24 @@ export function CommandCenterRootActions() {
           title: t("sidebar.sections.schedules"),
           sectionTitle: t("shell.commandCenter.actions"),
           icon: SchedulesIcon,
+        },
+      },
+      {
+        id: "project-management",
+        group: "actions",
+        groupRank: 0,
+        rank: 10,
+        keywords: ["project", "management", "pm", "tasks", "roadmap", "dovspace"],
+        visibility: "always",
+        run: () => {
+          clearCommandCenterFocusRestoreElement();
+          router.push("/project-management" as Href);
+        },
+        presentation: {
+          kind: "action",
+          title: t("shell.commandCenter.projectManagement"),
+          sectionTitle: t("shell.commandCenter.actions"),
+          icon: FolderKanbanIcon,
         },
       },
       {

@@ -110,6 +110,7 @@ export type PluginClientRuntime = Pick<
   | "rpc"
   | "openSettings"
   | "openScreen"
+  | "openRoute"
   | "openSurface"
   | "composers"
   | "openPanel"
